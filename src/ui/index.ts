@@ -4,7 +4,6 @@ import "./ui.css";
 import FileGenerator from "./FileGenerator";
 import FontAwesomeJSPlugin from "./plugins/FontAwesomeJSPlugin";
 import PlainJSPlugin from "./plugins/PlainJSPlugin";
-import XamarinFormsResourceDictionaryPlugin from "./plugins/XamarinFormsPathGeometryPlugin";
 import { PluginSettings, PluginData } from "types";
 
 //all very hacky. I couldn't get paper-jsdom working, so i'm just using it on the browser side.
@@ -24,7 +23,6 @@ const targets = {
 const generator = new FileGenerator();
 generator.use(FontAwesomeJSPlugin);
 generator.use(PlainJSPlugin);
-generator.use(XamarinFormsResourceDictionaryPlugin);
 
 function emit(type: string, payload?: any) {
   const pluginMessage: { type: string, payload?: any } = { type };
