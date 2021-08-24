@@ -3,6 +3,7 @@ import "./ui.css";
 
 import FileGenerator from "./FileGenerator";
 import FontAwesomeJSPlugin from "./plugins/FontAwesomeJSPlugin";
+import PlainJSPlugin from "./plugins/PlainJSPlugin";
 import XamarinFormsResourceDictionaryPlugin from "./plugins/XamarinFormsPathGeometryPlugin";
 import { PluginSettings, PluginData } from "types";
 
@@ -22,6 +23,7 @@ const targets = {
 
 const generator = new FileGenerator();
 generator.use(FontAwesomeJSPlugin);
+generator.use(PlainJSPlugin);
 generator.use(XamarinFormsResourceDictionaryPlugin);
 
 function emit(type: string, payload?: any) {

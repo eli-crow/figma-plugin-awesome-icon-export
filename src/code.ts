@@ -199,3 +199,5 @@ function init() {
 }
 
 init();
+
+//TODO: generate icon font using svg2ttf, then ttf to other formats
