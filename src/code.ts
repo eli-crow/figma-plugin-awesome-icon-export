@@ -155,6 +155,12 @@ function getIconData(): IconData[] {
 figma.ui.onmessage = ({ type, payload }) => {
   if (type === "UPDATE_SETTINGS") {
     setPluginSettings(payload as PluginSettings)
+  } 
+  else if (type === "INIT_ERROR") {
+    if (payload === 'unknown format') {
+      const settings = getPluginSettings()
+      setPluginSettings({...settings, format: undefined})
+    }
   }
   else if (type === "DOWNLOAD") {
     const payload: PluginData = {
@@ -182,15 +188,12 @@ figma.ui.onmessage = ({ type, payload }) => {
 
 function init() {
   figma.showUI(__html__, { width: 320, height: 280 });
-  const settingDefaults: PluginSettings = {
-    framePrefix: 'icon',
-    fileName: 'icons',
-    preserveMargins: true,
-    format: 'Font Awesome JS Library',
-  };
+  const existing = getPluginSettings()
   setPluginSettings({
-    ...settingDefaults,
-    ...getPluginSettings(),
+    framePrefix: existing?.framePrefix ?? 'icon',
+    fileName: existing?.fileName ?? 'icons',
+    preserveMargins: existing?.preserveMargins ?? true,
+    format: existing?.format ?? 'Font Awesome JS Library',
   });
   figma.ui.postMessage({
     type: "INIT",

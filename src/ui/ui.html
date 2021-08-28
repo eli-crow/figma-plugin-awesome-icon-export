@@ -16,7 +16,7 @@
 <form class="settings" id="pluginSettings">
   <label class="horizontal-input">
     <div class="label horizontal-input__label">Format</div>
-    <select id="format" class="horizontal-input__input">
+    <select id="format" class="horizontal-input__input select-menu">
       <!-- generated -->
     </select>
   </label>
@@ -24,7 +24,7 @@
   <label class="horizontal-input">
     <div class="label horizontal-input__label">Frame Prefix</div>
     <input id="framePrefix" type="input" class="input input__field horizontal-input__input" placeholder="prefix"
-      value="icon" />
+           value="icon" />
     <div class="horizontal-input__text type type--small">
       &nbsp;/&nbsp;icon-name
     </div>
@@ -33,14 +33,15 @@
   <label class="horizontal-input">
     <div class="label horizontal-input__label">Filename</div>
     <input id="fileName" type="input" class="input input__field horizontal-input__input" placeholder="file-name"
-      value="icons" />
+           value="icons" />
     <div id="fileExtension" class="horizontal-input__text type type--small">.js</div>
   </label>
 
   <label class="horizontal-input">
     <div class="label horizontal-input__label">Preserve Margins?</div>
-    <div class="horizontal-input__input">
-      <input id="preserveMargins" type="checkbox" checked />
+    <div class="horizontal-input__input checkbox">
+      <input id="preserveMargins" type="checkbox" class="checkbox__box">
+      <span for="preserveMargins" class="checkbox__label"></span>
     </div>
   </label>
 </form>

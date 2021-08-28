@@ -3,10 +3,16 @@ import "./ui.css";
 
 import FileGenerator from "./FileGenerator";
 import FontAwesomeJSPlugin from "./plugins/FontAwesomeJSPlugin";
-import PlainJSPlugin from "./plugins/PlainJSPlugin";
+import SimpleJsPlugin from "./plugins/SimpleJsPlugin";
+import SimpleJsonPlugin from "./plugins/SimpleJsonPlugin";
+import { selectMenu } from "figma-plugin-ds"
 import { PluginSettings, PluginData } from "types";
 
 //all very hacky. I couldn't get paper-jsdom working, so i'm just using it on the browser side.
+
+const errors = {
+  UNKNOWN_FORMAT: 'unknown format'
+}
 
 const targets = {
   framePrefix: document.querySelector<HTMLInputElement>("#framePrefix"),
@@ -22,7 +28,8 @@ const targets = {
 
 const generator = new FileGenerator();
 generator.use(FontAwesomeJSPlugin);
-generator.use(PlainJSPlugin);
+generator.use(SimpleJsPlugin);
+generator.use(SimpleJsonPlugin);
 
 function emit(type: string, payload?: any) {
   const pluginMessage: { type: string, payload?: any } = { type };
@@ -30,13 +37,20 @@ function emit(type: string, payload?: any) {
   parent.postMessage({ pluginMessage }, "*");
 }
 
-function updateView(settings: PluginSettings) {
+function initView() {
+  
+}
+
+function updateView(settings: PluginSettings) { 
   const activePlugin = generator.plugins[settings.format];
+  try {
+    if (!activePlugin) throw new Error(errors.UNKNOWN_FORMAT)
+  } catch(e) {
+    throw e
+  }
 
   targets.framePrefix.value = settings.framePrefix;
-
   targets.filenameLabel.innerText = `${settings.fileName}.${activePlugin.getFileExtension()}`;
-
   targets.fileExtension.innerText = `.${activePlugin.getFileExtension()}`;
 
   if (settings.preserveMargins) targets.preserveMargins.checked = true;
@@ -53,7 +67,16 @@ function updateView(settings: PluginSettings) {
 }
 
 function init(settings: PluginSettings) {
-  updateView(settings);
+  try {
+    updateView(settings);
+  }  
+  catch(e) {
+    if (e.message === errors.UNKNOWN_FORMAT) {
+      emit('INIT_ERROR', "unknown format")
+    } else {
+      throw e
+    }
+  }
   targets.download.addEventListener("click", (e) => {
     emit("DOWNLOAD");
   });
@@ -69,6 +92,7 @@ function init(settings: PluginSettings) {
     }
     emit("UPDATE_SETTINGS", newSettings);
   });
+  selectMenu.init()
 }
 
 onmessage = (e) => {

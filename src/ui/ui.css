@@ -74,16 +74,21 @@ html {
   grid-template-rows: repeat(auto-fill, minmax(60px, 1fr));
 }
 
-input[type="checkbox"] {
-  margin-left: 8px;
+.horizontal-input
+.checkbox__box {
+  width: 0;
+  height: 0;
 }
 
-select {
-  -webkit-appearance: menulist-button;
-  border: solid 1px transparent;
-  background-color: transparent;
-  height: 32px;
+.horizontal-input
+.checkbox__label::before {
+  width: 15px;
+  height: 15px;
+  margin:0
 }
-select:hover {
-  border-color: var(--black1);
+
+.horizontal-input
+.checkbox__box:checked +
+.checkbox__label::before {
+  background-position: 3px 3px;
 }

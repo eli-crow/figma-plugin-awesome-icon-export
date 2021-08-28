@@ -5,6 +5,7 @@
   "main": "code.js",
   "scripts": {
     "watch": "npx webpack --mode=development --watch",
+    "build:dev": "npx webpack --mode=development",
     "build": "npx webpack --mode=production",
     "test": "echo \"Error: I'm too lazy to test this robustly. 🤷‍♂️\" && exit 1"
   },
@@ -19,7 +20,7 @@
   "license": "CC BY 4.0",
   "dependencies": {
     "copy-to-clipboard": "^3.3.1",
-    "figma-plugin-ds": "^0.1.8",
+    "figma-plugin-ds": "^1.0.1",
     "lodash": "^4.17.15",
     "paper": "^0.12.4"
   },

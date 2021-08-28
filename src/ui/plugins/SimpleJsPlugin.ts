@@ -1,8 +1,8 @@
 import { PluginData, FormatPlugin } from '../../types';
 
-import { camelCase, upperFirst } from 'lodash';
+import { camelCase } from 'lodash';
 
-export default class FontAwesomeJSPlugin implements FormatPlugin {
+export default class SimpleJsPlugin implements FormatPlugin {
     getFormatName() {
         return 'Simple JS Exports'
     }
