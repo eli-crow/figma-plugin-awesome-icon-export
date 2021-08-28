@@ -6,12 +6,14 @@ function getPluginSettings(): PluginSettings {
   return JSON.parse(storage.getPluginData("pluginSettings") || "null") || {};
 }
 
-function setPluginSettings(settings: PluginSettings): void {
+function setPluginSettings(settings: PluginSettings, notify: Boolean = true): void {
   storage.setPluginData("pluginSettings", JSON.stringify(settings));
-  figma.ui.postMessage({
-    type: "SETTINGS_UPDATED",
-    payload: settings
-  })
+  if (notify) {
+    figma.ui.postMessage({
+      type: "SETTINGS_UPDATED",
+      payload: settings
+    })
+  }
 }
 
 function matchesPrefix(string: string): boolean {
@@ -154,13 +156,7 @@ function getIconData(): IconData[] {
 
 figma.ui.onmessage = ({ type, payload }) => {
   if (type === "UPDATE_SETTINGS") {
-    setPluginSettings(payload as PluginSettings)
-  } 
-  else if (type === "INIT_ERROR") {
-    if (payload === 'unknown format') {
-      const settings = getPluginSettings()
-      setPluginSettings({...settings, format: undefined})
-    }
+    setPluginSettings(payload as PluginSettings, false)
   }
   else if (type === "DOWNLOAD") {
     const payload: PluginData = {
@@ -187,7 +183,7 @@ figma.ui.onmessage = ({ type, payload }) => {
 };
 
 function init() {
-  figma.showUI(__html__, { width: 320, height: 280 });
+  figma.showUI(__html__, { width: 320, height: 332 });
   const existing = getPluginSettings()
   setPluginSettings({
     framePrefix: existing?.framePrefix ?? 'icon',

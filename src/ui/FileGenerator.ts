@@ -16,7 +16,6 @@ export default class FileGenerator {
             const p = new paper.CompoundPath(icon.data);
             p.reorient(false, true);
             if (data.pluginSettings.preserveMargins) {
-                console.log('yes');
                 p.translate(new paper.Point(icon.offsetX, icon.offsetY));
             }
             icon.data = p.pathData;

@@ -13,7 +13,7 @@ export default class SimpleJsonPlugin implements FormatPlugin {
 
     generateFileText(data: PluginData): string {
         return `{
-    ${data.icons.map(icon => `"${camelCase(icon.name)}": {"title": "${icon.name}", "w": ${data.pluginSettings.preserveMargins ? icon.width : icon.iconWidth}, "h": ${data.pluginSettings.preserveMargins ? icon.height : icon.iconHeight}, "d": "${icon.data}"}`).join(",\n")}
+    ${data.icons.map(icon => `"${camelCase(icon.name)}": {"title": "${icon.name}", "w": ${data.pluginSettings.preserveMargins ? icon.width : icon.iconWidth}, "h": ${data.pluginSettings.preserveMargins ? icon.height : icon.iconHeight}, "d": "${icon.data}"}`).join(",\n\t")}
 }`;
     }
 }

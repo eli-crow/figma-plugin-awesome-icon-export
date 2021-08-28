@@ -8,6 +8,7 @@
 
 html {
   padding: 12px;
+  color: var(--black-8)
 }
 
 .horizontal-input {
@@ -18,6 +19,7 @@ html {
 .horizontal-input__label {
   flex: 0 0 7rem;
   white-space: nowrap;
+  color: var(--black8);
 }
 
 .horizontal-input__input {
@@ -33,7 +35,7 @@ html {
 
 .file {
   background: #ffffff;
-  border: 1px solid #dedede;
+  border: 1px solid var(--black1);
   box-sizing: border-box;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.13);
   border-radius: 5px;
@@ -90,5 +92,32 @@ html {
 .horizontal-input
 .checkbox__box:checked +
 .checkbox__label::before {
-  background-position: 3px 3px;
+  background-position: 3px 4px;
+}
+
+select {
+  appearance: none;
+  margin: 1px 0 1px 0;
+  padding: var(--size-xxsmall) var(--size-xxxsmall) var(--size-xxsmall) var(--size-xxsmall);
+  font: inherit;
+  color: var(--black8);
+  font-size: var(--font-size-xsmall);
+  letter-spacing: var(--font-letter-spacing-neg-xsmall);
+  border-radius: var(--border-radius-small);
+  line-height: var(--line-height);
+  border-color: transparent;
+  flex: 1;
+  width: 100%;
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg fill='none' height='32' width='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16 18l3-4h-6z' fill='%23222'/%3E%3C/svg%3E");
+  background-origin: border-box;
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+select:hover {
+  border-color: var(--black1);;
+}
+
+a {
+  color: #18a0fb;
+  text-decoration: none;
 }
