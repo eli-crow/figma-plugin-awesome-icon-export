@@ -1,15 +1,17 @@
 {
     "compilerOptions": {
+        "resolveJsonModule": true,
         "target": "es6",
         "lib": [
             "DOM",
+            "es2020"
         ],
         "typeRoots": [
             "./node_modules/@types",
             "./node_modules/@figma"
         ],
         "baseUrl": "./src",
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "allowSyntheticDefaultImports": true,
         "jsx": "react"
     },
