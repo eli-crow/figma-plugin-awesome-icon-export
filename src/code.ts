@@ -6,7 +6,7 @@ function getPluginSettings(): PluginSettings {
   return JSON.parse(storage.getPluginData("pluginSettings") || "null") || {};
 }
 
-function setPluginSettings(settings: PluginSettings, notify: Boolean = true): void {
+function setPluginSettings(settings: PluginSettings, notify = true): void {
   storage.setPluginData("pluginSettings", JSON.stringify(settings));
   if (notify) {
     figma.ui.postMessage({
@@ -32,15 +32,14 @@ function isCompletelyTransparent(node: GeometryMixin): boolean {
   if (node.fillStyleId) {
     const style = figma.getStyleById(node.fillStyleId.toString())
     if (style.type === 'PAINT') {
-      //@ts-ignore
-      const paintStyle: PaintStyle = style;
+      const paintStyle = style as PaintStyle;
       if (paintStyle.paints.some(p => p.visible && p.opacity > 0)) {
         return false
       }
     }
   } else {
-    //@ts-ignore
-    if (node.fills.some(p => p.visible && p.opacity > 0)) {
+    const fills = node.fills as Paint[]
+    if (fills.some(p => p.visible && p.opacity > 0)) {
       return false
     }
   }
@@ -48,14 +47,12 @@ function isCompletelyTransparent(node: GeometryMixin): boolean {
   if (node.strokeStyleId) {
     const style = figma.getStyleById(node.strokeStyleId.toString())
     if (style.type === 'PAINT') {
-      //@ts-ignore
-      const paintStyle: PaintStyle = style;
+      const paintStyle = style as PaintStyle;
       if (paintStyle.paints.some(p => p.visible && p.opacity > 0)) {
         return false
       }
     }
   } else {
-    //@ts-ignore
     if (node.strokes.some(p => p.visible && p.opacity > 0)) {
       return false
     }
@@ -102,10 +99,9 @@ function getIconData(): IconData[] {
       }
 
       try {
-        //@ts-ignore
-        if (clone.outlineStroke) {
-          //@ts-ignore
-          const strokes = clone.outlineStroke()
+        const outlinable = clone as GeometryMixin
+        if (outlinable.outlineStroke) {
+          const strokes = outlinable.outlineStroke()
           if (strokes != null) {
             const union = figma.union([strokes, clone], figma.currentPage)
             const flat = figma.flatten([union], figma.currentPage)
@@ -179,6 +175,10 @@ figma.ui.onmessage = ({ type, payload }) => {
       type: "COPY_SUCCESS",
       payload: payload
     })
+  }
+  else if (type === "RESIZE") {
+    const {width, height} = payload
+    figma.ui.resize(width, height)
   }
 };
 

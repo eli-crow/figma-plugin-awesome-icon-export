@@ -13,7 +13,7 @@ export interface PluginData {
     pluginSettings: PluginSettings;
     figmaDocumentName: string;
     icons: IconData[];
-};
+}
 
 export interface PluginSettings {
     preserveMargins?: boolean;
@@ -22,11 +22,8 @@ export interface PluginSettings {
     format?: string;
 }
 
-export interface FormatPlugin {
-    getFormatName(): string;
-    getFileExtension(): string;
-    generateFileText(data: PluginData): string;
-}
-export interface FormatPluginConstructor {
-    new(data?: PluginData);
+export interface Format {
+    name: string,
+    extension: string,
+    template: string,
 }
