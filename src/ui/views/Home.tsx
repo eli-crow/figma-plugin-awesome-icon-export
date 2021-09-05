@@ -6,7 +6,7 @@ function HomeView(): ReactElement  {
     const app = useContext(PluginContext);
 
     useEffect(() => {
-        app.resize(320, 335.59)
+        app.resize(320, 336)
     }, [])
 
     useEffect(() => {

@@ -178,7 +178,7 @@ figma.ui.onmessage = ({ type, payload }) => {
   }
   else if (type === "RESIZE") {
     const {width, height} = payload
-    figma.ui.resize(width, height)
+    figma.ui.resize(Math.ceil(width), Math.ceil(height))
   }
 };
 
