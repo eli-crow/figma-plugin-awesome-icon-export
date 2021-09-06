@@ -4,6 +4,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
 }
 
 html {
@@ -124,4 +125,103 @@ select:hover {
 a {
   color: #18a0fb;
   text-decoration: none;
+}
+
+.TemplateEditor {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+}
+.TemplateEditor .CodeMirror {
+  height: auto;
+  color: var(--grey);
+  background-color: var(--black8);
+  font-family: "Roboto Mono", monospace;
+  font-size: 13px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.TemplateEditor .CodeMirror .cm-document-replacement-token {
+  color: var(--blue);
+}
+.TemplateEditor .CodeMirror .cm-icon-replacement-token {
+  color: var(--purple);
+}
+.TemplateEditor .CodeMirror .cm-control-statement {
+  color: var(--purple);
+}
+.TemplateEditor .CodeMirror-cursor {
+  border-color: var(--grey);
+}
+.TemplateEditor .CodeMirror-lines {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+
+.EditorView_header {
+  padding: 0.625rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.EditorView_space {
+  flex: 1 0 0;
+}
+.EditorView_buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.EditorView_field {
+  display: inline-flex;
+  gap: 4px;
+}
+.EditorView_label {
+  width: auto;
+  font-weight: 700;
+  color: var(--black8);
+  padding: 0
+}
+.EditorView_tabs {
+  padding: 1rem;
+  display: flex;
+  gap: 12px;
+}
+.EditorView_tab {
+  appearance: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  background: none;
+  font-weight: 600;
+  padding: 0;
+}
+.EditorView_tab[data-active="false"] {
+  color: var(--black3);
+}
+.EditorView_tab-content {
+  padding: 0 1rem 1rem;
+}
+.EditorView_preview {
+  border-radius: 4px;
+  border: solid 1px var(--grey);
+  overflow: auto;
+  height: 8rem;
+}
+.EditorView_preview code {
+  display: block;
+  white-space: nowrap;
+  padding: 8px;
+  color: var(--black8);
+}
+
+
+.Input {
+  display: flex;
+}
+
+.Loading {
+  padding: 1rem;
 }

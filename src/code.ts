@@ -190,6 +190,7 @@ function init() {
     fileName: existing?.fileName ?? 'icons',
     preserveMargins: existing?.preserveMargins ?? true,
     format: existing?.format ?? 'Font Awesome JS Library',
+    customFormats: existing?.customFormats ?? [],
   });
   figma.ui.postMessage({
     type: "INIT",

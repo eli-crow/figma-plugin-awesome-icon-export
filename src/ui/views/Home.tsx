@@ -1,6 +1,5 @@
 import React, { ReactElement, useContext, useEffect } from 'react'
-
-import PluginContext from '../context';
+import {PluginContext} from '../store';
 
 function HomeView(): ReactElement  {
     const app = useContext(PluginContext);
@@ -9,16 +8,10 @@ function HomeView(): ReactElement  {
         app.resize(320, 336)
     }, [])
 
-    useEffect(() => {
-      if (!app.activeFormat && app.settings) {
-        app.patchSettings({format: app.formats[0].name })
-      }
-    }, [app.activeFormat, app.settings])
-
     function handleSelectFormat(e) {
         const format = e.target.value
         if (format === 'CREATE_CUSTOM') {
-            //do a thing
+            app.editNewFormat()
         } else {
             app.patchSettings({format})
         }
@@ -29,7 +22,7 @@ function HomeView(): ReactElement  {
           <div className="file">
             <div className="file__header">
               <div className="file__icon icon icon--draft"></div>
-              <span className="file__name type type--large type--bold">{app.settings.fileName}.{app.activeFormat.extension}</span>
+              <span className="file__name type type--large type--bold">{app.settings.fileName}.{app.getActiveFormat().extension}</span>
             </div>
             <div className="file__action-group">
               <button className="button button--primary file__action" onClick={app.download}>
@@ -47,11 +40,12 @@ function HomeView(): ReactElement  {
               <select 
                 className="horizontal-input__input" 
                 onChange={handleSelectFormat}
-                value={app.activeFormat.name}
+                value={app.getActiveFormat().name}
               >
-                {app.formats.map(({name}) => <option value={name} key={name}>{name}</option>)}
-                <option disabled>────────────</option>
-                <option value="CREATE_CUSTOM">Create custom format...</option>
+                {app.getDefaultFormats().map(({name}) => <option value={name} key={name}>{name}</option>)}
+                <option disabled>───── Custom ─────</option>
+                {app.getCustomFormats().map(({name}) => <option value={name} key={name}>{name}</option>)}
+                <option value="CREATE_CUSTOM">New Custom Format...</option>
               </select>
             </label>
 
@@ -76,7 +70,7 @@ function HomeView(): ReactElement  {
                 placeholder="file-name"
                 value={app.settings.fileName}
                 onChange={e => app.patchSettings({fileName: e.target.value})} />
-              <div id="fileExtension" className="horizontal-input__text type type--small">.{app.activeFormat.extension}</div>
+              <div id="fileExtension" className="horizontal-input__text type type--small">.{app.getActiveFormat().extension}</div>
             </label>
 
             <label className="horizontal-input">
