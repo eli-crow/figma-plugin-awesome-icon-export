@@ -3,7 +3,7 @@ import paper from "paper/dist/paper-core";
 import manifset from "../../manifest.json";
 import type { PluginData, Format, IconReplacementToken, DocumentReplacementToken } from "../types";
 
-const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}(.+?){\/icon\}/gm
+const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}([\s\S]+?){\/icon\}/gm
 
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 paper.setup(canvas);
@@ -36,7 +36,7 @@ function parseTemplate(template: string, data: PluginData): string {
         PLUGIN_NAME: manifset.name,
     }
     Object.entries(globalReplacements).forEach(([token, replacement]) => {
-        fileText = fileText.replace(token, replacement)
+        fileText = fileText.replaceAll(token, replacement)
     })
 
     const regex = new RegExp(ICON_TEMPLATE_PATTERN)
@@ -70,7 +70,7 @@ function parseTemplate(template: string, data: PluginData): string {
             }
             Object.entries(iconReplacements).forEach(([token, replacement]) => {
                 replacement = replacement.toString()
-                iconLine = iconLine.replace(token, replacement)
+                iconLine = iconLine.replaceAll(token, replacement)
             })
             if (separator && i !== a.length - 1) {
                 iconLine += separator

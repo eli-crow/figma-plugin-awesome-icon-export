@@ -4,7 +4,8 @@
         "target": "es6",
         "lib": [
             "DOM",
-            "es2020"
+            "ES2020",
+            "ESNext.String"
         ],
         "typeRoots": [
             "./node_modules/@types",
