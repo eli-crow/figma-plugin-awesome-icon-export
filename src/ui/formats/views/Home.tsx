@@ -1,5 +1,5 @@
 import React, { ReactElement, useContext, useEffect } from 'react'
-import {PluginContext} from '../store';
+import {PluginContext} from '../../store';
 
 function HomeView(): ReactElement  {
     const app = useContext(PluginContext);

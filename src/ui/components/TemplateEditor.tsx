@@ -7,8 +7,8 @@ import { IconReplacementToken, DocumentReplacementToken } from '../../types'
 CodeMirror.defineSimpleMode("formatTemplate", {
     start: [
         {token: "control-statement", regex: /\{#icon(\s+?.+?)?\}|\{\/icon\}/},
-        {token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})\\b`)},
-        {token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})\\b`)},
+        {token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`)},
+        {token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`)},
     ]
 });
 
@@ -22,10 +22,14 @@ function TemplateEditor ({defaultValue, onChange}: Props): ReactElement {
     const editor = useRef()
 
     useEffect(() => {
-        editor.current = CodeMirror(root.current, {
+        const cm = CodeMirror(root.current, {
             value: defaultValue,
             mode: 'formatTemplate',
         })
+        cm.on('blur', (cm) => {
+            onChange(cm.getValue())
+        })
+        editor.current = cm
     }, [])
 
     return (

@@ -78,7 +78,12 @@ function useStore(): PluginStoreHook {
       })
     },
     saveEditingFormat(format) {
-      setSettings(s => ({...s, customFormats: [...s.customFormats, format]}))
+      setSettings(s => ({
+        ...s, 
+        customFormats: [...s.customFormats, format],
+        format: format.name,
+      }))
+      setEditingFormat(null)
     },
     cancelEditingFormat() {
       setEditingFormat(null)

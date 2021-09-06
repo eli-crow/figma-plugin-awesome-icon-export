@@ -154,6 +154,14 @@ figma.ui.onmessage = ({ type, payload }) => {
   if (type === "UPDATE_SETTINGS") {
     setPluginSettings(payload as PluginSettings, false)
   }
+
+  else if (type === "PREVIEW") {
+    figma.ui.postMessage({
+      type: "DATA_UPDATED",
+      payload: payload
+    })
+  }
+
   else if (type === "DOWNLOAD") {
     const payload: PluginData = {
       pluginSettings: getPluginSettings(),
@@ -161,10 +169,15 @@ figma.ui.onmessage = ({ type, payload }) => {
       icons: getIconData()
     }
     figma.ui.postMessage({
+      type: "DATA_UPDATED",
+      payload: payload
+    })
+    figma.ui.postMessage({
       type: "DOWNLOAD_SUCCESS",
       payload: payload
     })
   }
+
   else if (type === "COPY") {
     const payload: PluginData = {
       pluginSettings: getPluginSettings(),
@@ -172,10 +185,15 @@ figma.ui.onmessage = ({ type, payload }) => {
       icons: getIconData()
     }
     figma.ui.postMessage({
+      type: "DATA_UPDATED",
+      payload: payload
+    })
+    figma.ui.postMessage({
       type: "COPY_SUCCESS",
       payload: payload
     })
   }
+
   else if (type === "RESIZE") {
     const {width, height} = payload
     figma.ui.resize(Math.ceil(width), Math.ceil(height))

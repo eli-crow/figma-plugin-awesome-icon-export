@@ -1,6 +1,6 @@
 import React, { ReactElement, useContext, useEffect, useState, } from "react";
-import TemplateEditor from "../components/TemplateEditor";
-import {PluginContext} from "../store";
+import TemplateEditor from "../../components/TemplateEditor";
+import {PluginContext} from "../../store";
 
 enum Tab {
     Preview,
@@ -22,7 +22,6 @@ function EditorView(): ReactElement {
     }, [])
 
     function handleChange(text) {
-        console.log(text)
         setTemplate(text)
     }
 
