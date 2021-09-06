@@ -70,7 +70,7 @@ function HomeView(): ReactElement  {
                 placeholder="file-name"
                 value={app.settings.fileName}
                 onChange={e => app.patchSettings({fileName: e.target.value})} />
-              <div id="fileExtension" className="horizontal-input__text type type--small">.{app.getActiveFormat().extension}</div>
+              <div id="fileExtension" className="horizontal-input__text type type--small">&nbsp;.{app.getActiveFormat().extension}</div>
             </label>
 
             <label className="horizontal-input">
