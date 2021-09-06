@@ -18,7 +18,7 @@ function getFileInfo(data: PluginData, format: Format): FileInfo {
     data.icons.forEach(icon => {
         const p = new paper.CompoundPath(icon.data);
         p.reorient(false, true);
-        if (data.pluginSettings.preserveMargins) {
+        if (data.pluginSettings.sizing === 'frame') {
             p.translate(new paper.Point(icon.offsetX, icon.offsetY));
         }
         icon.data = p.pathData;

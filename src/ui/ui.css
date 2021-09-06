@@ -20,7 +20,7 @@ html {
   display: flex;
   justify-content: flex-end;
   font-weight: 600;
-  flex: 0 0 7rem;
+  flex: 0 0 5rem;
   white-space: nowrap;
   color: var(--black8);
   text-align: right;

@@ -74,21 +74,25 @@ function HomeView(): ReactElement  {
             </label>
 
             <label className="horizontal-input">
-              <div className="label horizontal-input__label">Preserve Margins?</div>
-              <div className="horizontal-input__input checkbox">
-                <input type="checkbox" className="checkbox__box" />
-                <span className="checkbox__label"></span>
-              </div>
+              <div className="label horizontal-input__label">Sizing</div>
+              <select 
+                className="horizontal-input__input" 
+                onChange={e => app.patchSettings({sizing: (e.target.value as "frame" | "contents")})}
+                value={app.settings.sizing}
+              >
+                <option value="frame">Frame</option>
+                <option value="contents">Contents</option>
+              </select>
             </label>
           </form>
 
-          <div className="onboarding-tip" style={{backgroundColor: "#F1F9FF", padding: '8px'}}>
+          <div className="onboarding-tip" style={{backgroundColor: "#F9F9F9", padding: '8px'}}>
             <div className="icon icon--smiley"></div>
             <div className="onboarding-tip__msg">Need a different format? Just want to say hi? <a
               href="https://github.com/eli-crow/figma-plugin-font-awesome-export/issues/new?title=Hello%20There!&body=If%20you%27re%20requesting%20a%20format,%20please%20include%20a%20sample%20of%20the%20format%20and%20let%20me%20know%20how%20it%20will%20be%20used!"
               target="top">Leave a comment on the plugin page</a>! If it's a text-based format, I can probably support it!</div>
           </div>
-        </>
+      </>
     )
 }
 

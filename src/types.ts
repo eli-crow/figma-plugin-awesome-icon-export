@@ -16,7 +16,7 @@ export interface PluginData {
 }
 
 export interface PluginSettings {
-    preserveMargins?: boolean;
+    sizing?: 'frame' | 'contents';
     fileName?: string;
     framePrefix?: string;
     format?: string;

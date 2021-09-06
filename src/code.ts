@@ -206,7 +206,7 @@ function init() {
   setPluginSettings({
     framePrefix: existing?.framePrefix ?? 'icon',
     fileName: existing?.fileName ?? 'icons',
-    preserveMargins: existing?.preserveMargins ?? true,
+    sizing: existing?.sizing ?? 'frame',
     format: existing?.format ?? 'Font Awesome JS Library',
     customFormats: existing?.customFormats ?? [],
   });
