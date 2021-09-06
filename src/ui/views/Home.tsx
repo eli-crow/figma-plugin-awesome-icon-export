@@ -1,12 +1,11 @@
-import React, { ReactElement, useContext, useLayoutEffect } from 'react'
+import React, { ReactElement, useContext, useEffect } from 'react'
 import {PluginContext} from '../store';
 
 function HomeView(): ReactElement  {
     const app = useContext(PluginContext);
 
-    useLayoutEffect(() => {
-        const {height} = document.getElementById('react-app').getBoundingClientRect()
-        app.resize(320, height)
+    useEffect(() => {
+        app.resize(320, 330)
     }, [])
 
     function handleSelectFormat(e) {
