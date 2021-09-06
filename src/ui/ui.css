@@ -163,13 +163,13 @@ a {
   padding-left: 8px;
   padding-right: 8px;
 }
-.TemplateEditor .CodeMirror .cm-document-replacement-token {
+.cm-document-replacement-token {
   color: var(--blue);
 }
-.TemplateEditor .CodeMirror .cm-icon-replacement-token {
+.cm-icon-replacement-token {
   color: var(--purple);
 }
-.TemplateEditor .CodeMirror .cm-control-statement {
+.cm-control-statement {
   color: var(--purple);
 }
 .TemplateEditor .CodeMirror-cursor {
@@ -247,4 +247,28 @@ a {
 
 .Loading {
   padding: 1rem;
+}
+
+.SyntaxHelp {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+}
+.SyntaxHelp-column {
+  min-width: 0;
+}
+.SyntaxHelp-code {
+  display: block;
+  color: var(--grey);
+  background-color: var(--black8);
+  font-family: "Roboto Mono", monospace;
+  font-size: 11px;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.SyntaxHelp-description {
+  color: var(--black8);
+  line-height: 1.5;
+  font-size: 11px;
 }

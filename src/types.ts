@@ -47,6 +47,7 @@ export enum Command {
     COPY = 'COPY',
     PREVIEW = 'PREVIEW',
     RESIZE = 'RESIZE',
+    NOTIFY = 'NOTIFY',
 }
 
 export enum Response {

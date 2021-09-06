@@ -120,6 +120,7 @@ function useStore(): PluginStore {
           const data = payload as PluginData
           const {fileText} = getFileInfo(data, editingFormat ?? activeFormat)
           copyToClipboard(fileText)
+          command(Command.NOTIFY, "📋 Copied to clipboard!")
           break
         }
       }
@@ -165,6 +166,8 @@ function useStore(): PluginStore {
       setEditingFormat(null)
     },
     editDeleteFormat() {
+      const proceed = confirm(`Are you sure you want to permanently delete "${editingFormat.name}"?`)
+      if (!proceed) return;
       const formatsWithoutDeleted = settings.customFormats.filter(f => f.id !== editingFormat.id)
       patchSettings({
         customFormats: formatsWithoutDeleted,

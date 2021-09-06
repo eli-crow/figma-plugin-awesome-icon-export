@@ -190,6 +190,12 @@ figma.ui.onmessage = (msg) => {
       figma.ui.resize(Math.ceil(width), Math.ceil(height))
       break;
     }
+
+    case Command.NOTIFY: {
+      const message = payload as string
+      figma.notify(message)
+      break;
+    }
   }
 };
 

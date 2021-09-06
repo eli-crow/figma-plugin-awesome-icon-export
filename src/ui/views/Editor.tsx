@@ -1,8 +1,9 @@
-import React, { ReactElement, useCallback, useContext, useEffect, useLayoutEffect, useState, } from "react";
+import React, { ReactElement, useCallback, useContext, useEffect, useLayoutEffect, useState, Fragment } from "react";
 import TemplateEditor from "../components/TemplateEditor";
 import {PluginContext} from "../store";
 import {useDebouncedCallback} from 'use-debounce'
 import getFileInfo from "../generate";
+import { DocumentReplacementToken, IconReplacementToken } from "../../types";
 
 enum Tab {
     Preview,
@@ -97,9 +98,44 @@ function EditorView(): ReactElement {
                     </pre>
                 )}
                 {tab === Tab.Syntax && (
-                    <>
-                        Help!
-                    </>
+                    <div className="SyntaxHelp">
+                        <div className="SyntaxHelp-column">
+                            <code className="SyntaxHelp-code">
+                                {Object.keys(DocumentReplacementToken).map((t, i, a) => (<Fragment key={t}><span className="cm-document-replacement-token">{t}</span>{i !== a.length - 1 && ", "}</Fragment>))}
+                            </code>
+                            <p className="SyntaxHelp-description">
+                                Inject details of this Figma document
+                            </p>
+                        </div>
+                        <div className="SyntaxHelp-column">
+                            <code className="SyntaxHelp-code">
+                                <span className="cm-icon-replacement-token">&#123;#icon</span> ,<span className="cm-icon-replacement-token">&#125;</span>...<span className="cm-icon-replacement-token">&123;/icon&125;</span>
+                            </code>
+                            <p className="SyntaxHelp-description">
+                                Text between these tags is generated for each icon. Optionally specify some text in the opening tag to append to all but the last generated line
+                            </p>
+                        </div>
+                        <div className="SyntaxHelp-column">
+                            <code className="SyntaxHelp-code">
+                                {[IconReplacementToken.I_NAME, IconReplacementToken.I_WIDTH, IconReplacementToken.I_HEIGHT, IconReplacementToken.I_INDEX, IconReplacementToken.I_PATH, IconReplacementToken.I_LEFT, IconReplacementToken.I_TOP].map(
+                                    (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
+                                )}
+                            </code>
+                            <p className="SyntaxHelp-description">
+                                When used inside <span className="cm-icon-replacement-token">&123;#icon&125;</span>, injects details of each icon 
+                            </p>
+                        </div>
+                        <div className="SyntaxHelp-column">
+                            <code className="SyntaxHelp-code">
+                                {[IconReplacementToken.I_CAMEL, IconReplacementToken.I_KEBAB, IconReplacementToken.I_PASCAL, IconReplacementToken.I_SNAKE, IconReplacementToken.I_CONSTANT].map(
+                                    (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
+                                )}
+                            </code>
+                            <p className="SyntaxHelp-description">
+                            The name of the icon transformed into common capitalizations
+                            </p>
+                        </div>
+                    </div>
                 )}
             </div>
         </>
