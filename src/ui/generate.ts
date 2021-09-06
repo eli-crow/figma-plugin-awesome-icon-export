@@ -1,4 +1,4 @@
-import { camelCase, snakeCase, kebabCase, startCase, toUpper } from "lodash";
+import { camelCase, snakeCase, kebabCase, toUpper, upperFirst } from "lodash";
 import paper from "paper/dist/paper-core";
 import manifset from "../../manifest.json";
 import type { PluginData, Format, IconReplacementToken, DocumentReplacementToken } from "../types";
@@ -63,7 +63,7 @@ function parseTemplate(template: string, data: PluginData): string {
                 I_HUNDREDS_INDEX: i.toString().padStart(3, '0'),
 
                 I_CAMEL: camelCase(name),
-                I_PASCAL: startCase(name),
+                I_PASCAL: upperFirst(camelCase(name)),
                 I_CONSTANT: toUpper(snakeCase(name)),
                 I_KEBAB: kebabCase(name),
                 I_SNAKE: snakeCase(name),
