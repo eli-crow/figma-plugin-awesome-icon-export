@@ -109,10 +109,10 @@ function EditorView(): ReactElement {
                         </div>
                         <div className="SyntaxHelp-column">
                             <code className="SyntaxHelp-code">
-                                <span className="cm-icon-replacement-token">&#123;#icon</span> ,<span className="cm-icon-replacement-token">&#125;</span>...<span className="cm-icon-replacement-token">&123;/icon&125;</span>
+                                <span className="cm-icon-replacement-token">{"{#icon"}</span> ,<span className="cm-icon-replacement-token">{"}"}</span>...<span className="cm-icon-replacement-token">{"{/icon}"}</span>
                             </code>
                             <p className="SyntaxHelp-description">
-                                Text between these tags is generated for each icon. Optionally specify some text in the opening tag to append to all but the last generated line
+                                Text between these tags is generated for each icon. Optionally specify some text in the opening tag to add some text to every line except the last.
                             </p>
                         </div>
                         <div className="SyntaxHelp-column">
@@ -122,7 +122,7 @@ function EditorView(): ReactElement {
                                 )}
                             </code>
                             <p className="SyntaxHelp-description">
-                                When used inside <span className="cm-icon-replacement-token">&123;#icon&125;</span>, injects details of each icon 
+                                When used inside <span className="cm-icon-replacement-token">{"{#icon}"}</span>, injects details of each icon 
                             </p>
                         </div>
                         <div className="SyntaxHelp-column">
