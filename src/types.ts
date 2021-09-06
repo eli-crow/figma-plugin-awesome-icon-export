@@ -19,14 +19,41 @@ export interface PluginSettings {
     sizing?: 'frame' | 'contents';
     fileName?: string;
     framePrefix?: string;
-    format?: string;
+    selectedFormatId?: string;
     customFormats: Format[],
 }
 
 export interface Format {
+    id: string;
     name: string;
     extension: string;
     template: string;
+    custom?: boolean;
+}
+
+export interface ClientEvent {
+    type: Command;
+    payload?: unknown;
+}
+
+export interface ServerEvent {
+    type: Response;
+    payload?: unknown;
+}
+
+export enum Command {
+    UPDATE_SETTINGS = 'UPDATE_SETTINGS',
+    DOWNLOAD = 'DOWNLOAD',
+    COPY = 'COPY',
+    PREVIEW = 'PREVIEW',
+    RESIZE = 'RESIZE',
+}
+
+export enum Response {
+    INIT = 'INIT',
+    DATA_UPDATED = 'DATA_UPDATED',
+    DOWNLOAD_SUCCESS = 'DOWNLOAD_SUCCESS',
+    COPY_SUCCESS = 'COPY_SUCCESS',
 }
 
 export enum DocumentReplacementToken {

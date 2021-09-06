@@ -1,36 +1,39 @@
-import React, { ReactElement, useContext, useEffect } from 'react'
-import {PluginContext} from '../../store';
+import React, { ReactElement, useContext, useLayoutEffect } from 'react'
+import {PluginContext} from '../store';
 
 function HomeView(): ReactElement  {
     const app = useContext(PluginContext);
 
-    useEffect(() => {
-        app.resize(320, 336)
+    useLayoutEffect(() => {
+        const {height} = document.getElementById('react-app').getBoundingClientRect()
+        app.resize(320, height)
     }, [])
 
     function handleSelectFormat(e) {
-        const format = e.target.value
-        if (format === 'CREATE_CUSTOM') {
+        const value = e.target.value
+        if (value === 'CREATE_CUSTOM') {
             app.editNewFormat()
         } else {
-            app.patchSettings({format})
+            app.patchSettings({selectedFormatId: value})
         }
     }
 
     return (
         <>
-          <div className="file">
-            <div className="file__header">
-              <div className="file__icon icon icon--draft"></div>
-              <span className="file__name type type--large type--bold">{app.settings.fileName}.{app.getActiveFormat().extension}</span>
-            </div>
-            <div className="file__action-group">
-              <button className="button button--primary file__action" onClick={app.download}>
-                <div className="type type--medium">Download</div>
-              </button>
-              <button className="button button--secondary file__action" onClick={app.copy}>
-                <div className="type type--medium">Copy as text</div>
-              </button>
+          <div className="file-container">
+            <div className="file">
+              <div className="file__header">
+                <div className="file__icon icon icon--draft"></div>
+                <span className="file__name type type--large type--bold">{app.settings.fileName}.{app.activeFormat.extension}</span>
+              </div>
+              <div className="file__action-group">
+                <button className="button button--primary file__action" onClick={app.download}>
+                  <div className="type type--medium">Download</div>
+                </button>
+                <button className="button button--secondary file__action" onClick={app.copy}>
+                  <div className="type type--medium">Copy as text</div>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -40,13 +43,18 @@ function HomeView(): ReactElement  {
               <select 
                 className="horizontal-input__input" 
                 onChange={handleSelectFormat}
-                value={app.getActiveFormat().name}
+                value={app.settings.selectedFormatId}
               >
-                {app.getDefaultFormats().map(({name}) => <option value={name} key={name}>{name}</option>)}
+                {app.defaultFormats.map(({name, id}) => <option value={id} key={id}>{name}</option>)}
                 <option disabled>───── Custom ─────</option>
-                {app.getCustomFormats().map(({name}) => <option value={name} key={name}>{name}</option>)}
+                {app.customFormats.map(({name, id}) => <option value={id} key={id}>{name}</option>)}
                 <option value="CREATE_CUSTOM">New Custom Format...</option>
               </select>
+              {app.activeFormat.custom && (
+                <button type="button" onClick={() => app.editFormat(app.activeFormat.id)} className="horizontal-input__action">
+                  Edit
+                </button>
+              )}
             </label>
 
             <label className="horizontal-input">
@@ -70,7 +78,7 @@ function HomeView(): ReactElement  {
                 placeholder="file-name"
                 value={app.settings.fileName}
                 onChange={e => app.patchSettings({fileName: e.target.value})} />
-              <div id="fileExtension" className="horizontal-input__text type type--small">&nbsp;.{app.getActiveFormat().extension}</div>
+              <div id="fileExtension" className="horizontal-input__text type type--small">&nbsp;.{app.activeFormat.extension}</div>
             </label>
 
             <label className="horizontal-input">

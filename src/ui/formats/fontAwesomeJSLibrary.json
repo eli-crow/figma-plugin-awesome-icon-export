@@ -1,5 +1,6 @@
 {
+    "id": "$1",
     "name": "Font Awesome JS Library",
-    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const faI_PASCAL = { prefix: \"fas\", iconName: \"I_NAME\", icon: [I_WIDTH, I_HEIGHT, [], \"eI_HUNDREDS_INDEX\", \"I_PATH\"]}{/icon}",
+    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const faI_PASCAL = { prefix: \"fas\", iconName: \"I_NAME\", icon: [I_WIDTH, I_HEIGHT, [], \"eI_HUNDREDS_INDEX\", \"I_PATH\"]}{/icon}\n",
     "extension": "js"
 }

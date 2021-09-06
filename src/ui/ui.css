@@ -38,6 +38,28 @@ html {
   color: rgb(189, 189, 189);
 }
 
+.horizontal-input__action {
+  margin-left: .375rem;
+  appearance: none;
+  font: inherit;
+  font-size: .6875rem;
+  background: none;
+  outline: 0;
+  border: 0;
+  font-weight: 600;
+  color: var(--blue);
+  border-radius: 2px;
+  align-self: stretch;
+  padding: 0 6px;
+}
+.horizontal-input__action:hover {
+  background: var(--grey);
+}
+
+.file-container {
+  padding: .75rem .75rem 0;
+}
+
 .file {
   background: #ffffff;
   border: 1px solid var(--black1);
@@ -45,7 +67,6 @@ html {
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.13);
   border-radius: 5px;
   padding: 0.5rem;
-  margin: 12px;
 }
 
 .file__header {
@@ -72,7 +93,7 @@ html {
 }
 
 .settings {
-  margin: 1rem;
+  padding: .75rem 1rem;
 }
 
 .preview-group {
@@ -92,7 +113,7 @@ html {
 .checkbox__label::before {
   width: 15px;
   height: 15px;
-  margin:0
+  margin: 0;
 }
 
 .horizontal-input
@@ -164,7 +185,7 @@ a {
   padding: 0.625rem 1rem;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: .75rem;
 }
 .EditorView_space {
   flex: 1 0 0;
@@ -185,9 +206,10 @@ a {
   padding: 0
 }
 .EditorView_tabs {
-  padding: 1rem;
+  height: 2.5rem;
   display: flex;
-  gap: 12px;
+  padding: 0 1rem;
+  gap: .75rem;
 }
 .EditorView_tab {
   appearance: none;
@@ -210,10 +232,10 @@ a {
   border: solid 1px var(--grey);
   overflow: auto;
   height: 8rem;
+  font-size: 0.6875rem;
 }
 .EditorView_preview code {
   display: block;
-  white-space: nowrap;
   padding: 8px;
   color: var(--black8);
 }

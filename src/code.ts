@@ -1,19 +1,13 @@
-import type { IconData, PluginData, PluginSettings } from './types';
+import { ClientEvent, Command, IconData, PluginData, PluginSettings, Response, ServerEvent } from './types';
 
 const storage = figma.root
 
 function getPluginSettings(): PluginSettings {
-  return JSON.parse(storage.getPluginData("pluginSettings") || "null") || {};
+  return JSON.parse(storage.getPluginData("pluginSettings")) ?? null;
 }
 
-function setPluginSettings(settings: PluginSettings, notify = true): void {
+function setPluginSettings(settings: PluginSettings): void {
   storage.setPluginData("pluginSettings", JSON.stringify(settings));
-  if (notify) {
-    figma.ui.postMessage({
-      type: "SETTINGS_UPDATED",
-      payload: settings
-    })
-  }
 }
 
 function matchesPrefix(string: string): boolean {
@@ -150,72 +144,70 @@ function getIconData(): IconData[] {
   return results.reverse()
 }
 
-figma.ui.onmessage = ({ type, payload }) => {
-  if (type === "UPDATE_SETTINGS") {
-    setPluginSettings(payload as PluginSettings, false)
+function getPluginData(): PluginData {
+  return {
+    pluginSettings: getPluginSettings(),
+    figmaDocumentName: figma.root.name,
+    icons: getIconData()
   }
+}
 
-  else if (type === "PREVIEW") {
-    figma.ui.postMessage({
-      type: "DATA_UPDATED",
-      payload: payload
-    })
-  }
+function respond(type: Response, payload: unknown) {
+  const event: ServerEvent = {type, payload}
+  figma.ui.postMessage(event)
+}
 
-  else if (type === "DOWNLOAD") {
-    const payload: PluginData = {
-      pluginSettings: getPluginSettings(),
-      figmaDocumentName: figma.root.name,
-      icons: getIconData()
+figma.ui.onmessage = (msg) => {
+  const { type, payload } = msg as ClientEvent
+
+  switch (type) {
+    case Command.UPDATE_SETTINGS: {
+      setPluginSettings(payload as PluginSettings)
+      break;
     }
-    figma.ui.postMessage({
-      type: "DATA_UPDATED",
-      payload: payload
-    })
-    figma.ui.postMessage({
-      type: "DOWNLOAD_SUCCESS",
-      payload: payload
-    })
-  }
 
-  else if (type === "COPY") {
-    const payload: PluginData = {
-      pluginSettings: getPluginSettings(),
-      figmaDocumentName: figma.root.name,
-      icons: getIconData()
+    case Command.PREVIEW: {
+      respond(Response.DATA_UPDATED, getPluginData())
+      break;
     }
-    figma.ui.postMessage({
-      type: "DATA_UPDATED",
-      payload: payload
-    })
-    figma.ui.postMessage({
-      type: "COPY_SUCCESS",
-      payload: payload
-    })
-  }
 
-  else if (type === "RESIZE") {
-    const {width, height} = payload
-    figma.ui.resize(Math.ceil(width), Math.ceil(height))
+    case Command.DOWNLOAD: {
+      const data = getPluginData()
+      respond(Response.DATA_UPDATED, data)
+      respond(Response.DOWNLOAD_SUCCESS, data)
+      break;
+    }
+    
+    case Command.COPY: {
+      const data = getPluginData()
+      respond(Response.DATA_UPDATED, data)
+      respond(Response.COPY_SUCCESS, data)
+      break;
+    }
+
+    case Command.RESIZE: {
+      const {width, height} = payload as {width: number, height: number}
+      figma.ui.resize(Math.ceil(width), Math.ceil(height))
+      break;
+    }
   }
 };
 
 function init() {
   figma.showUI(__html__, { width: 320, height: 332 });
+
   const existing = getPluginSettings()
-  setPluginSettings({
-    framePrefix: existing?.framePrefix ?? 'icon',
-    fileName: existing?.fileName ?? 'icons',
-    sizing: existing?.sizing ?? 'frame',
-    format: existing?.format ?? 'Font Awesome JS Library',
-    customFormats: existing?.customFormats ?? [],
-  });
-  figma.ui.postMessage({
-    type: "INIT",
-    payload: getPluginSettings(),
-  })
+  
+  const framePrefix = existing.framePrefix ?? 'icon'
+  const fileName = existing.fileName ?? 'icons'
+  const sizing = existing.sizing ?? 'frame'
+  const customFormats = existing.customFormats ?? []
+  const selectedFormatId = customFormats.find(f => f.id === existing.selectedFormatId)?.id ?? '$1'
+
+  const settings = {selectedFormatId, framePrefix, fileName, sizing, customFormats}
+  setPluginSettings(settings);
+
+  respond(Response.INIT, settings)
 }
 
 init();
-
-//TODO: generate icon font using svg2ttf, then ttf to other formats

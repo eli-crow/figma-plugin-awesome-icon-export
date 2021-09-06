@@ -1,26 +1,33 @@
 import React, { ReactElement } from 'react'
 
-import Home from './formats/views/Home'
-import Editor from './formats/views/Editor'
+import Home from './views/Home'
+import Editor from './views/Editor'
 
-import useStore from './store'
+import useStore, {PluginContext} from './store'
 
 /** Manages view changes and creates the store */
 function App(): ReactElement {
-  const {Provider, store} = useStore()
-  
-  const loading = !store.settings
+  const store = useStore()
 
   function buildView() {
-    if (loading) return <p className="Loading">Loading...</p>
-    if (store.getEditingFormat() !== null) return <Editor/>
-    return <Home/>
+    if (!store.isLoaded){
+      return <p className="Loading">Loading...</p> 
+    } 
+    else if (store.editingFormat) {
+      return <Editor/>
+    }
+    else if (store.activeFormat) {
+      return <Home/>
+    }
+    else {
+      return <pre>{JSON.stringify(store, null, '\t')}</pre>
+    }
   }
-
+  
   return (
-    <Provider>
+    <PluginContext.Provider value={store}>
       {buildView()}
-    </Provider>
+    </PluginContext.Provider>
   );
 }
 

@@ -1,5 +1,6 @@
 {
+    "id": "$2",
     "name": "Simple JavaScript",
-    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const I_CAMEL = {w: I_WIDTH, h: I_HEIGHT, title: \"I_NAME\", d: \"I_PATH\"};{/icon}",
+    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const I_CAMEL = {w: I_WIDTH, h: I_HEIGHT, title: \"I_NAME\", d: \"I_PATH\"};{/icon}\n",
     "extension": "json"
 }

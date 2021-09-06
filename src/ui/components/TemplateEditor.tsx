@@ -1,4 +1,4 @@
-import React, {Dispatch, ReactElement, useEffect, useRef} from 'react'
+import React, {ReactElement, useEffect, useRef} from 'react'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/mode/simple'
 import 'codemirror/lib/codemirror.css'
@@ -13,11 +13,12 @@ CodeMirror.defineSimpleMode("formatTemplate", {
 });
 
 interface Props {
-    defaultValue: string,
-    onChange: Dispatch<string>
+    defaultValue?: string,
+    onChange?: (text: string) => void,
+    onInput?: (text: string) => void,
 }
 
-function TemplateEditor ({defaultValue, onChange}: Props): ReactElement {
+function TemplateEditor ({defaultValue, onChange, onInput}: Props): ReactElement {
     const root = useRef()
     const editor = useRef()
 
@@ -26,7 +27,10 @@ function TemplateEditor ({defaultValue, onChange}: Props): ReactElement {
             value: defaultValue,
             mode: 'formatTemplate',
         })
-        cm.on('blur', (cm) => {
+        onInput && cm.on('change', (cm) => {
+            onInput(cm.getValue())
+        })
+        onChange && cm.on('blur', (cm) => {
             onChange(cm.getValue())
         })
         editor.current = cm
