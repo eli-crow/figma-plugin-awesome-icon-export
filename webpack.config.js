@@ -1,6 +1,6 @@
+/* eslint-disable */
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HtmlWebpackInlineSourcePlugin = require("html-webpack-inline-source-plugin");
-const path = require("path");
 
 module.exports = (env, argv) => ({
   mode: argv.mode === "production" ? "production" : "development",
@@ -8,7 +8,6 @@ module.exports = (env, argv) => ({
 
   entry: {
     client: "./client/index.tsx",
-    server: "./server/index.ts",
   },
 
   module: {
@@ -25,7 +24,7 @@ module.exports = (env, argv) => ({
 
   output: {
     filename: "[name].js",
-    path: path.resolve(__dirname, "dist"),
+    path: `${__dirname}/dist`,
   },
 
   plugins: [
