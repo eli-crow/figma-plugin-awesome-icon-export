@@ -1,0 +1,6 @@
+{
+    "id": "$4",
+    "name": "SVG in JSX",
+    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const iconI_PASCAL = <svg class=\"Icon\" width=\"I_WIDTH\" height=\"I_HEIGHT\" viewBox=\"I_LEFT I_TOP I_WIDTH I_HEIGHT\"><title>I_PASCAL</title><path d=\"I_PATH\" fill=\"currentcolor\"/></svg>{/icon}",
+    "extension": "jsx"
+}
