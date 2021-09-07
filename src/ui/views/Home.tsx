@@ -5,7 +5,7 @@ function HomeView(): ReactElement  {
     const app = useContext(PluginContext);
 
     useEffect(() => {
-        app.resize(320, 330)
+        app.resize(320, 316)
     }, [])
 
     function handleSelectFormat(e) {
@@ -95,9 +95,9 @@ function HomeView(): ReactElement  {
 
           <div className="onboarding-tip" style={{backgroundColor: "#F9F9F9", padding: '8px'}}>
             <div className="icon icon--smiley"></div>
-            <div className="onboarding-tip__msg">Need a different format? Just want to say hi? <a
-              href="https://github.com/eli-crow/figma-plugin-font-awesome-export/issues/new?title=Hello%20There!&body=If%20you%27re%20requesting%20a%20format,%20please%20include%20a%20sample%20of%20the%20format%20and%20let%20me%20know%20how%20it%20will%20be%20used!"
-              target="top">Leave a comment on the plugin page</a>! If it's a text-based format, I can probably support it!</div>
+            <div className="onboarding-tip__msg">Bugs? Feature Requests? Just want to say hi? <a
+              href="https://www.figma.com/community/plugin/836280433803020304/FontAwesome-Export"
+              target="top">Leave a comment on the plugin page</a>!</div>
           </div>
       </>
     )
