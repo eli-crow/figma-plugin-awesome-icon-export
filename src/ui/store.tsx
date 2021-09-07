@@ -4,7 +4,7 @@ import getFileInfo from "./generate";
 import defaultFormats from './formats'
 import { useEffect, useState, createContext } from "react";
 import { PluginData, PluginSettings, Format, Command, Response, ServerEvent } from "../types";
-import { uniqueId } from "lodash";
+import { v4 as uuid } from 'uuid'
 
 interface PluginStore {
     readonly settings: PluginSettings;
@@ -141,7 +141,7 @@ function useStore(): PluginStore {
     patchEditingFormat, 
     editNewFormat() {
       setEditingFormat({
-        id: uniqueId(),
+        id: uuid(),
         name: "Custom Format",
         extension: activeFormat?.extension ?? "",
         template: activeFormat?.template ?? "",
