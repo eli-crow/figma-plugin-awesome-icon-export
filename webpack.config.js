@@ -7,17 +7,14 @@ module.exports = (env, argv) => ({
   devtool: argv.mode === "production" ? false : "inline-source-map",
 
   entry: {
-    ui: "./src/ui/index.tsx",
-    code: "./src/code.ts",
+    client: "./client/index.tsx",
+    server: "./server/index.ts",
   },
 
   module: {
     rules: [
       { test: /\.tsx?$/, use: "ts-loader", exclude: /node_modules/ },
-      {
-        test: /\.css$/,
-        loader: [{ loader: "style-loader" }, { loader: "css-loader" }],
-      },
+      { test: /\.css$/, loader: [{ loader: "style-loader" }, { loader: "css-loader" }] },
       { test: /\.(png|jpg|gif|webp|svg)$/, loader: [{ loader: "url-loader" }] },
     ],
   },
@@ -33,10 +30,10 @@ module.exports = (env, argv) => ({
 
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/ui/ui.html",
-      filename: "ui.html",
+      template: "./client/index.html",
+      filename: "client.html",
       inlineSource: ".(js)$",
-      chunks: ["ui"],
+      chunks: ["client"],
     }),
     new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
   ],

@@ -1,19 +1,19 @@
 import { camelCase, snakeCase, kebabCase, toUpper, upperFirst } from "lodash";
 import paper from "paper/dist/paper-core";
-import manifset from "../../manifest.json";
-import type { PluginData, Format, IconReplacementToken, DocumentReplacementToken } from "../types";
+import manifset from "../manifest.json";
+import type { ExportData, Format as ExportFormat, DocumentReplacementDictionary, IconReplacementDictionary } from "../types";
 
 const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}([\s\S]+?){\/icon\}/gm
 
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 paper.setup(canvas);
 
-interface FileInfo {
+interface Export {
     fileName: string,
     fileText: string,
 }
 
-function getFileInfo(data: PluginData, format: Format): FileInfo {
+function getFileInfo(data: ExportData, format: ExportFormat): Export {
     //corrects winding order and some other things. Couldn't figure out how to do this in code.ts.
     data.icons.forEach(icon => {
         const p = new paper.CompoundPath(icon.data);
@@ -29,14 +29,16 @@ function getFileInfo(data: PluginData, format: Format): FileInfo {
     return { fileName, fileText };
 }
 
-function parseTemplate(template: string, data: PluginData): string {
+function parseTemplate(template: string, data: ExportData): string {
     let fileText = template
-    const globalReplacements: {[token in DocumentReplacementToken]: string} = {
+    const globalReplacements: DocumentReplacementDictionary = {
         DOC_NAME: data.figmaDocumentName,
         PLUGIN_NAME: manifset.name,
     }
     Object.entries(globalReplacements).forEach(([token, replacement]) => {
-        fileText = fileText.replaceAll(token, replacement)
+        //TODO: use regex to search for any case suffixes and transform the strings if found
+        // https://regexr.com/65681
+        fileText = fileText.replaceAll(token, replacement.toString())
     })
 
     const regex = new RegExp(ICON_TEMPLATE_PATTERN)
@@ -52,7 +54,7 @@ function parseTemplate(template: string, data: PluginData): string {
             let iconLine = iconTemplate
             // for now, no token can be a subset of another token, due to matching order
             const name = icon.name.trim()
-            const iconReplacements: {[token in IconReplacementToken]: string | number} = {
+            const iconReplacements: IconReplacementDictionary = {
                 I_NAME: name,
                 I_WIDTH: icon.width,
                 I_HEIGHT: icon.height,
@@ -62,14 +64,20 @@ function parseTemplate(template: string, data: PluginData): string {
                 I_INDEX: i,
                 I_HUNDREDS_INDEX: i.toString().padStart(3, '0'),
 
+                //TODO: remove case tokens from this dictionary once case suffixes implemented
                 I_CAMEL: camelCase(name),
                 I_PASCAL: upperFirst(camelCase(name)),
                 I_CONSTANT: toUpper(snakeCase(name)),
                 I_KEBAB: kebabCase(name),
                 I_SNAKE: snakeCase(name),
             }
+
+            //TODO: generate tokens for each variant property
+
             Object.entries(iconReplacements).forEach(([token, replacement]) => {
                 replacement = replacement.toString()
+                //TODO: use regex to search for any case suffixes and transform the strings if found
+                // https://regexr.com/65681
                 iconLine = iconLine.replaceAll(token, replacement)
             })
             if (separator && i !== a.length - 1) {

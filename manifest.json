@@ -2,7 +2,7 @@
   "name": "Awesome Icon Export",
   "id": "836280433803020304",
   "api": "1.0.0",
-  "main": "dist/code.js",
-  "ui": "dist/ui.html",
+  "main": "dist/server.js",
+  "ui": "dist/client.html",
   "editorType": ["figma"]
 }

@@ -11,7 +11,7 @@
             "./node_modules/@types",
             "./node_modules/@figma"
         ],
-        "baseUrl": "./src",
+        "baseUrl": "server",
         "moduleResolution": "Node",
         "allowSyntheticDefaultImports": true,
         "jsx": "react"

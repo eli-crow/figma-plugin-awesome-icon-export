@@ -3,12 +3,12 @@ import copyToClipboard from "copy-to-clipboard";
 import getFileInfo from "./generate";
 import defaultFormats from './formats'
 import { useEffect, useState, createContext } from "react";
-import { PluginData, PluginSettings, Format, Command, Response, ServerEvent } from "../types";
+import { ExportData, PluginSettings, Format, ClientCommand, ServerResponse, ServerResponseMessage, ClientCommandMessage } from "../types";
 import { v4 as uuid } from 'uuid'
 
 interface PluginStore {
     readonly settings: PluginSettings;
-    readonly data: PluginData;
+    readonly data: ExportData;
     readonly isLoaded: boolean;
     readonly patchSettings: (patch: Partial<PluginSettings>) => void;
     readonly activeFormat: Format;
@@ -52,16 +52,20 @@ const PluginContext = createContext<PluginStore>({
     resize: () => {}
 })
 
-function command(type: Command, payload?: unknown) {
-  const pluginMessage: { type: string, payload?: unknown; } = { type };
-  if (payload) pluginMessage.payload = payload;
+function command(command: ClientCommand, payload?: unknown) {
+  const pluginMessage: ClientCommandMessage = {
+    source: "client",
+    type: "command",
+    command,
+    payload
+  };
   parent.postMessage({ pluginMessage }, "*");
 }
 
 function useStore(): PluginStore {
   
   const [settings, setSettings] = useState<PluginSettings>(null)
-  const [data, setData] = useState<PluginData>(null)
+  const [data, setData] = useState<ExportData>(null)
   const [editingFormat, setEditingFormat] = useState<Format>(null)
   
   const formats = settings 
@@ -83,28 +87,28 @@ function useStore(): PluginStore {
   function patchSettings (patch: Partial<PluginSettings>) {
     const newSettings = {...settings, ...patch}
     setSettings(newSettings)
-    command(Command.UPDATE_SETTINGS, newSettings)
+    command(ClientCommand.UPDATE_SETTINGS, newSettings)
   }
 
   useEffect(() => {
     onmessage = (e) => {
-      const {type, payload} = e.data.pluginMessage as ServerEvent;
+      const {response: type, payload} = e.data.pluginMessage as ServerResponseMessage;
   
       switch (type) {
-        case Response.INIT: {
+        case ServerResponse.INIT: {
           const settings = payload as PluginSettings
           setSettings(settings)
           break
         }
   
-        case Response.DATA_UPDATED: {
-          const data = payload as PluginData
+        case ServerResponse.DATA_UPDATED: {
+          const data = payload as ExportData
           setData(data)
           break
         }
   
-        case Response.DOWNLOAD_SUCCESS: {
-          const data = payload as PluginData
+        case ServerResponse.DOWNLOAD_SUCCESS: {
+          const data = payload as ExportData
           const { fileName, fileText } = getFileInfo(data, activeFormat);
           const a = document.createElement("a");
           a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileText));
@@ -116,11 +120,11 @@ function useStore(): PluginStore {
           break
         }
   
-        case Response.COPY_SUCCESS: {
-          const data = payload as PluginData
+        case ServerResponse.COPY_SUCCESS: {
+          const data = payload as ExportData
           const {fileText} = getFileInfo(data, editingFormat ?? activeFormat)
           copyToClipboard(fileText)
-          command(Command.NOTIFY, "📋 Copied to clipboard!")
+          command(ClientCommand.NOTIFY, "📋 Copied to clipboard!")
           break
         }
       }
@@ -179,10 +183,10 @@ function useStore(): PluginStore {
       setEditingFormat(null)
     },
 
-    download() { command(Command.DOWNLOAD) },
-    copy() { command(Command.COPY) },
-    requestData() { command(Command.PREVIEW) },
-    resize(width, height) { command(Command.RESIZE, {width, height})}
+    download() { command(ClientCommand.DOWNLOAD) },
+    copy() { command(ClientCommand.COPY) },
+    requestData() { command(ClientCommand.PREVIEW) },
+    resize(width, height) { command(ClientCommand.RESIZE, {width, height})}
   }
 }
 

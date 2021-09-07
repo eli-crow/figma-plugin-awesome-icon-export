@@ -1,4 +1,4 @@
-import { ClientEvent, Command, IconData, PluginData, PluginSettings, Response, ServerEvent } from './types';
+import { ClientCommand, ClientCommandMessage, ExportData, IconData, PluginSettings, ServerResponse, ServerResponseMessage } from '../types';
 
 const storage = figma.root
 
@@ -66,6 +66,10 @@ function getIconData(): IconData[] {
   const results: IconData[] = [];
   iconFrames.forEach(frame => {
 
+    // TODO: support nested frames
+    // TODO: support variants
+    // TODO: remove support for instances
+
     const descendents = frame.findAll(n =>
       (
         n.type === 'BOOLEAN_OPERATION' ||
@@ -93,6 +97,7 @@ function getIconData(): IconData[] {
       }
 
       try {
+        // TODO: investigate how transforms affect items in groups
         const outlinable = clone as GeometryMixin
         if (outlinable.outlineStroke) {
           const strokes = outlinable.outlineStroke()
@@ -123,6 +128,7 @@ function getIconData(): IconData[] {
     const finalUnion = figma.union(clonedDescendents, figma.currentPage);
     const flattened = figma.flatten([finalUnion], figma.currentPage);
 
+    //TODO: isVariant, properties
     const iconData: IconData = {
       name: toIconName(frame.name),
       width: frame.width,
@@ -144,7 +150,7 @@ function getIconData(): IconData[] {
   return results.reverse()
 }
 
-function getPluginData(): PluginData {
+function getExportData(): ExportData {
   return {
     pluginSettings: getPluginSettings(),
     figmaDocumentName: figma.root.name,
@@ -152,48 +158,51 @@ function getPluginData(): PluginData {
   }
 }
 
-function respond(type: Response, payload: unknown) {
-  const event: ServerEvent = {type, payload}
+function respond(response: ServerResponse, payload: unknown) {
+  const event: ServerResponseMessage = {
+    response,
+    payload,
+    source: 'server',
+    type: 'response'
+  }
   figma.ui.postMessage(event)
 }
 
-figma.ui.onmessage = (msg) => {
-  const { type, payload } = msg as ClientEvent
-
-  switch (type) {
-    case Command.UPDATE_SETTINGS: {
-      setPluginSettings(payload as PluginSettings)
+figma.ui.onmessage = (message: ClientCommandMessage) => {
+  switch (message.command) {
+    case ClientCommand.UPDATE_SETTINGS: {
+      setPluginSettings(message.payload as PluginSettings)
       break;
     }
 
-    case Command.PREVIEW: {
-      respond(Response.DATA_UPDATED, getPluginData())
+    case ClientCommand.PREVIEW: {
+      respond(ServerResponse.DATA_UPDATED, getExportData())
       break;
     }
 
-    case Command.DOWNLOAD: {
-      const data = getPluginData()
-      respond(Response.DATA_UPDATED, data)
-      respond(Response.DOWNLOAD_SUCCESS, data)
+    case ClientCommand.DOWNLOAD: {
+      const data = getExportData()
+      respond(ServerResponse.DATA_UPDATED, data)
+      respond(ServerResponse.DOWNLOAD_SUCCESS, data)
       break;
     }
     
-    case Command.COPY: {
-      const data = getPluginData()
-      respond(Response.DATA_UPDATED, data)
-      respond(Response.COPY_SUCCESS, data)
+    case ClientCommand.COPY: {
+      const data = getExportData()
+      respond(ServerResponse.DATA_UPDATED, data)
+      respond(ServerResponse.COPY_SUCCESS, data)
       break;
     }
 
-    case Command.RESIZE: {
-      const {width, height} = payload as {width: number, height: number}
+    case ClientCommand.RESIZE: {
+      const {width, height} = message.payload as {width: number, height: number}
       figma.ui.resize(Math.ceil(width), Math.ceil(height))
       break;
     }
 
-    case Command.NOTIFY: {
-      const message = payload as string
-      figma.notify(message)
+    case ClientCommand.NOTIFY: {
+      const text = message.payload as string
+      figma.notify(text)
       break;
     }
   }
@@ -213,7 +222,7 @@ function init() {
   const settings = {selectedFormatId, framePrefix, fileName, sizing, customFormats}
   setPluginSettings(settings);
 
-  respond(Response.INIT, settings)
+  respond(ServerResponse.INIT, settings)
 }
 
 init();

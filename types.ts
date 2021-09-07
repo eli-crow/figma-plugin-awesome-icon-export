@@ -9,7 +9,12 @@ export interface IconData {
     data: string;
 }
 
-export interface PluginData {
+export interface VariantIconData extends IconData {
+    isVariant: true;
+    properties: {[property: string]: string};
+}
+
+export interface ExportData {
     pluginSettings: PluginSettings;
     figmaDocumentName: string;
     icons: IconData[];
@@ -31,17 +36,35 @@ export interface Format {
     custom?: boolean;
 }
 
-export interface ClientEvent {
-    type: Command;
+export interface Message {
+    source: 'client' | 'server',
+    type: 'command' | 'response',
     payload?: unknown;
 }
 
-export interface ServerEvent {
-    type: Response;
+export interface CommandMessage extends Message {
+    type: 'command';
+    command: string
+}
+
+export interface ResponseMessage extends Message {
+    type: 'response';
+    response: string;
+}
+
+export interface ClientCommandMessage extends CommandMessage {
+    source: 'client';
+    command: ClientCommand;
     payload?: unknown;
 }
 
-export enum Command {
+export interface ServerResponseMessage extends ResponseMessage {
+    source: 'server';
+    response: ServerResponse;
+    payload?: unknown;
+}
+
+export enum ClientCommand {
     UPDATE_SETTINGS = 'UPDATE_SETTINGS',
     DOWNLOAD = 'DOWNLOAD',
     COPY = 'COPY',
@@ -50,7 +73,7 @@ export enum Command {
     NOTIFY = 'NOTIFY',
 }
 
-export enum Response {
+export enum ServerResponse {
     INIT = 'INIT',
     DATA_UPDATED = 'DATA_UPDATED',
     DOWNLOAD_SUCCESS = 'DOWNLOAD_SUCCESS',
@@ -61,6 +84,7 @@ export enum DocumentReplacementToken {
     DOC_NAME = "DOC_NAME",
     PLUGIN_NAME = "PLUGIN_NAME",
 }
+export type DocumentReplacementDictionary = {[token in DocumentReplacementToken]: string | number}
 
 export enum IconReplacementToken {
     I_NAME = "I_NAME",
@@ -77,3 +101,4 @@ export enum IconReplacementToken {
     I_KEBAB = "I_KEBAB",
     I_SNAKE = "I_SNAKE",
 }
+export type IconReplacementDictionary = {[token in IconReplacementToken]: string | number}
