@@ -1,4 +1,4 @@
-import { camelCase, snakeCase, kebabCase, toUpper, upperFirst } from "lodash";
+import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCase } from "lodash-es";
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
 import type { ExportData, Format as ExportFormat, DocumentReplacementDictionary, IconReplacementDictionary } from "../types";
@@ -11,6 +11,17 @@ paper.setup(canvas);
 interface Export {
     fileName: string,
     fileText: string,
+}
+
+const caseTransforms: {readonly [name: string]: (t:string) => string} = {
+    CAMEL: camelCase,
+    PASCAL: t => upperFirst(camelCase(t)),
+    SNAKE: snakeCase,
+    CONSTANT: t => toUpper(snakeCase(t)),
+    KEBAB: kebabCase,
+    UPPER: toUpper,
+    LOWER: toLower,
+    TITLE: startCase,
 }
 
 function getFileInfo(data: ExportData, format: ExportFormat): Export {
@@ -65,11 +76,11 @@ function parseTemplate(template: string, data: ExportData): string {
                 I_HUNDREDS_INDEX: i.toString().padStart(3, '0'),
 
                 //TODO: remove case tokens from this dictionary once case suffixes implemented
-                I_CAMEL: camelCase(name),
-                I_PASCAL: upperFirst(camelCase(name)),
-                I_CONSTANT: toUpper(snakeCase(name)),
-                I_KEBAB: kebabCase(name),
-                I_SNAKE: snakeCase(name),
+                I_CAMEL: caseTransforms.CAMEL(name),
+                I_PASCAL: caseTransforms.PASCAL(name),
+                I_CONSTANT: caseTransforms.CONSTANT(name),
+                I_KEBAB: caseTransforms.KEBAB(name),
+                I_SNAKE: caseTransforms.SNAKE(name),
             }
 
             //TODO: generate tokens for each variant property
