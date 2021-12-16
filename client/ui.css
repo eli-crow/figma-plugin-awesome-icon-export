@@ -169,6 +169,9 @@ a {
 .cm-icon-replacement-token {
   color: var(--purple);
 }
+.cm-color-replacement-token {
+  color: var(--purple);
+}
 .cm-control-statement {
   color: var(--purple);
 }

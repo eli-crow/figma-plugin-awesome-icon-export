@@ -3,7 +3,7 @@ import TemplateEditor from "../components/TemplateEditor";
 import {PluginContext} from "../store";
 import {useDebouncedCallback} from 'use-debounce'
 import getFileInfo from "../generate";
-import { DocumentReplacementToken, IconReplacementToken } from "../../types";
+import { CaseTransformKey, DocumentReplacementToken, IconReplacementToken } from "../../types";
 
 enum Tab {
     Preview,
@@ -20,12 +20,12 @@ function EditorView(): ReactElement {
     }, []), 1000)
     
     function handleInput(template) {
-        app.patchEditingFormat({template})
+        app.editUpdateFormat({template})
         requestData()
     }
     
     function handleSave() {
-        app.editCreateOrUpdateFormat()
+        app.editSaveFormat()
     }
     
     useLayoutEffect(() => {
@@ -33,25 +33,23 @@ function EditorView(): ReactElement {
         app.resize(640, height);
     }, [tab])
     
-    useEffect(() => {
-        requestData();
-    }, [])
+    useEffect(requestData, [])
 
     const previewText = app.data 
-    ? getFileInfo(app.data, app.editingFormat).fileText 
-    : 'Loading...';
+        ? getFileInfo(app.data, app.editingFormat).fileText 
+        : 'Loading...';
 
     return (
         <>
             <header className="EditorView_header">
                 <label className="EditorView_field">
                     <div className="label EditorView_label">Name</div>
-                    <input id="name" type="input" className="input input__field EditorView_input" value={app.editingFormat.name} onChange={e => app.patchEditingFormat({name: e.target.value})} />
+                    <input id="name" type="input" className="input input__field EditorView_input" value={app.editingFormat.name} onChange={e => app.editUpdateFormat({name: e.target.value})} />
                 </label>
 
                 <label className="EditorView_field">
                     <div className="label EditorView_label">Extension</div>
-                    <input id="extension" type="input" className="input input__field EditorView_input" value={app.editingFormat.extension} onChange={e => app.patchEditingFormat({extension: e.target.value})} />
+                    <input id="extension" type="input" className="input input__field EditorView_input" value={app.editingFormat.extension} onChange={e => app.editUpdateFormat({extension: e.target.value})} />
                 </label>
 
                 <div className="EditorView_space"/>
@@ -127,12 +125,12 @@ function EditorView(): ReactElement {
                         </div>
                         <div className="SyntaxHelp-column">
                             <code className="SyntaxHelp-code">
-                                {[IconReplacementToken.I_CAMEL, IconReplacementToken.I_KEBAB, IconReplacementToken.I_PASCAL, IconReplacementToken.I_SNAKE, IconReplacementToken.I_CONSTANT].map(
-                                    (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
+                                {[CaseTransformKey.CAMEL, CaseTransformKey.KEBAB, CaseTransformKey.PASCAL, CaseTransformKey.SNAKE, CaseTransformKey.CONSTANT].map(
+                                    (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">_{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
                                 )}
                             </code>
                             <p className="SyntaxHelp-description">
-                            The name of the icon transformed into common capitalizations
+                            These suffixes transform the replacement into common cases
                             </p>
                         </div>
                     </div>

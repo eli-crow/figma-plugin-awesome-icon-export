@@ -13,14 +13,14 @@ interface PluginStore {
     readonly patchSettings: (patch: Partial<PluginSettings>) => void;
     readonly activeFormat: Format;
     readonly editingFormat: Format;
-    readonly patchEditingFormat: (patch: Partial<Format>) => void;
     readonly formats: ReadonlyArray<Format>;
     readonly defaultFormats: ReadonlyArray<Format>;
     readonly customFormats: ReadonlyArray<Format>;
+    readonly editUpdateFormat: (patch: Partial<Format>) => void;
     readonly editNewFormat: () => void;
     readonly editFormat: (id: string) => void;
     readonly editDeleteFormat: () => void;
-    readonly editCreateOrUpdateFormat: () => void;
+    readonly editSaveFormat: () => void;
     readonly editCancel: () => void;
     readonly download: () => void;
     readonly copy: () => void;
@@ -39,12 +39,12 @@ const PluginContext = createContext<PluginStore>({
     customFormats: [],
 
     editingFormat: null,
-    patchEditingFormat: () => {},
+    editUpdateFormat: () => {},
     editNewFormat: () => {},
     editFormat: () => {},
     editDeleteFormat: () => {},
     editCancel: () => {},
-    editCreateOrUpdateFormat: () => {},
+    editSaveFormat: () => {},
 
     download: () => {},
     copy: () => {},
@@ -75,9 +75,9 @@ function useStore(): PluginStore {
   const customFormats = settings?.customFormats;
   const isLoaded = settings !== null;
   
-  function patchEditingFormat(patch: Partial<Format>) {
-    const {id, ...rest} = patch
-    setEditingFormat(f => ({...f, ...rest}))
+  function editUpdateFormat(patch: Partial<Format>) {
+    const {id, ...newFormat} = patch
+    setEditingFormat(oldFormat => ({...oldFormat, ...newFormat}))
   }
   
   function getFormat(id: string) {
@@ -90,46 +90,44 @@ function useStore(): PluginStore {
     command(ClientCommand.UPDATE_SETTINGS, newSettings)
   }
 
-  useEffect(() => {
-    onmessage = (e) => {
-      const {response: type, payload} = e.data.pluginMessage as ServerResponseMessage;
-  
-      switch (type) {
-        case ServerResponse.INIT: {
-          const settings = payload as PluginSettings
-          setSettings(settings)
-          break
-        }
-  
-        case ServerResponse.DATA_UPDATED: {
-          const data = payload as ExportData
-          setData(data)
-          break
-        }
-  
-        case ServerResponse.DOWNLOAD_SUCCESS: {
-          const data = payload as ExportData
-          const { fileName, fileText } = getFileInfo(data, activeFormat);
-          const a = document.createElement("a");
-          a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileText));
-          a.setAttribute("download", fileName);
-          a.style.display = "none";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          break
-        }
-  
-        case ServerResponse.COPY_SUCCESS: {
-          const data = payload as ExportData
-          const {fileText} = getFileInfo(data, editingFormat ?? activeFormat)
-          copyToClipboard(fileText)
-          command(ClientCommand.NOTIFY, "📋 Copied to clipboard!")
-          break
-        }
+  onmessage = (e) => {
+    const {response: type, payload} = e.data.pluginMessage as ServerResponseMessage;
+
+    switch (type) {
+      case ServerResponse.INIT: {
+        const settings = payload as PluginSettings
+        setSettings(settings)
+        break
       }
-    };
-  }, [editingFormat, settings])
+
+      case ServerResponse.DATA_UPDATED: {
+        const data = payload as ExportData
+        setData(data)
+        break
+      }
+
+      case ServerResponse.DOWNLOAD_SUCCESS: {
+        const data = payload as ExportData
+        const { fileName, fileText } = getFileInfo(data, activeFormat);
+        const a = document.createElement("a");
+        a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(fileText));
+        a.setAttribute("download", fileName);
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        break
+      }
+
+      case ServerResponse.COPY_SUCCESS: {
+        const data = payload as ExportData
+        const {fileText} = getFileInfo(data, editingFormat ?? activeFormat)
+        copyToClipboard(fileText)
+        command(ClientCommand.NOTIFY, "📋 Copied to clipboard!")
+        break
+      }
+    }
+  };
 
   return {
     settings,
@@ -142,7 +140,7 @@ function useStore(): PluginStore {
     activeFormat,
     
     editingFormat,
-    patchEditingFormat, 
+    editUpdateFormat, 
     editNewFormat() {
       setEditingFormat({
         id: uuid(),
@@ -155,7 +153,7 @@ function useStore(): PluginStore {
     editFormat(id) {
       setEditingFormat({...getFormat(id)})
     },
-    editCreateOrUpdateFormat() {
+    editSaveFormat() {
       const formats = [...settings.customFormats]
       const existing = formats.find(f => f.id === editingFormat.id)
       if (existing) {

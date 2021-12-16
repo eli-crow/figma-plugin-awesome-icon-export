@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "codemirror": "^5.62.3",
+    "color-convert": "^2.0.1",
     "copy-to-clipboard": "^3.3.1",
     "figma-plugin-ds": "^1.0.1",
     "lodash-es": "^4.17.21",

@@ -1,3 +1,11 @@
+export interface ColorData {
+    name: string;
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}
+
 export interface IconData {
     name: string;
     width: number;
@@ -11,13 +19,14 @@ export interface IconData {
 
 export interface VariantIconData extends IconData {
     isVariant: true;
-    properties: {[property: string]: string};
+    properties: { [property: string]: string };
 }
 
 export interface ExportData {
     pluginSettings: PluginSettings;
     figmaDocumentName: string;
     icons: IconData[];
+    colors: ColorData[];
 }
 
 export interface PluginSettings {
@@ -84,7 +93,7 @@ export enum DocumentReplacementToken {
     DOC_NAME = "DOC_NAME",
     PLUGIN_NAME = "PLUGIN_NAME",
 }
-export type DocumentReplacementDictionary = {[token in DocumentReplacementToken]: string | number}
+export type DocumentReplacementDictionary = Map<DocumentReplacementToken, string>
 
 export enum IconReplacementToken {
     I_NAME = "I_NAME",
@@ -95,10 +104,36 @@ export enum IconReplacementToken {
     I_PATH = "I_PATH",
     I_INDEX = "I_INDEX",
     I_HUNDREDS_INDEX = "I_HUNDREDS_INDEX",
-    I_CAMEL = "I_CAMEL",
-    I_PASCAL = "I_PASCAL",
-    I_CONSTANT = "I_CONSTANT",
-    I_KEBAB = "I_KEBAB",
-    I_SNAKE = "I_SNAKE",
 }
-export type IconReplacementDictionary = {[token in IconReplacementToken]: string | number}
+export type IconReplacementDictionary = Map<IconReplacementToken, string>
+
+export enum ColorReplacementToken {
+    NAME = "NAME",
+    R_01 = "R_01",
+    R_256 = "R_256",
+    R_HEX = "R_HEX",
+    G_01 = "G_01",
+    G_256 = "G_256",
+    G_HEX = "G_HEX",
+    B_01 = "B_01",
+    B_256 = "B_256",
+    B_HEX = "B_HEX",
+    A_01 = "A_01",
+    A_HEX = "A_HEX",
+    RGBA_CSS = "RGBA_CSS",
+    RGBA_HEX = "RGBA_HEX",
+    ARGB_HEX = "ARGB_HEX",
+}
+export type ColorReplacementDictionary = Map<ColorReplacementToken, string>
+
+export enum CaseTransformKey {
+    CAMEL = "CAMEL",
+    PASCAL = "PASCAL",
+    SNAKE = "SNAKE",
+    CONSTANT = "CONSTANT",
+    KEBAB = "KEBAB",
+    UPPER = "UPPER",
+    LOWER = "LOWER",
+    TITLE = "TITLE",
+}
+export type CaseTransformDictionary = Record<CaseTransformKey, (t: string) => string>

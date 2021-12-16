@@ -7,6 +7,7 @@ module.exports = (env, argv) => ({
   devtool: argv.mode === "production" ? false : "inline-source-map",
 
   entry: {
+    server: "./server/index.ts",
     client: "./client/index.tsx",
   },
 

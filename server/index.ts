@@ -1,13 +1,54 @@
-import { ClientCommand, ClientCommandMessage, ExportData, IconData, PluginSettings, ServerResponse, ServerResponseMessage } from '../types';
+import { ClientCommand, ClientCommandMessage, ColorData, ExportData, IconData, PluginSettings, ServerResponse, ServerResponseMessage } from '../types';
 
-const storage = figma.root
+figma.ui.onmessage = (message: ClientCommandMessage) => {
+  switch (message.command) {
+    case ClientCommand.UPDATE_SETTINGS: {
+      setPluginSettings(message.payload as PluginSettings)
+      break;
+    }
+
+    case ClientCommand.PREVIEW: {
+      respond(ServerResponse.DATA_UPDATED, getExportData())
+      break;
+    }
+
+    case ClientCommand.DOWNLOAD: {
+      const data = getExportData()
+      respond(ServerResponse.DATA_UPDATED, data)
+      respond(ServerResponse.DOWNLOAD_SUCCESS, data)
+      break;
+    }
+    
+    case ClientCommand.COPY: {
+      const data = getExportData()
+      respond(ServerResponse.DATA_UPDATED, data)
+      respond(ServerResponse.COPY_SUCCESS, data)
+      break;
+    }
+
+    case ClientCommand.RESIZE: {
+      const {width, height} = message.payload as {width: number, height: number}
+      figma.ui.resize(Math.ceil(width), Math.ceil(height))
+      break;
+    }
+
+    case ClientCommand.NOTIFY: {
+      const text = message.payload as string
+      figma.notify(text)
+      break;
+    }
+  }
+};
+
+init();
 
 function getPluginSettings(): PluginSettings {
-  return JSON.parse(storage.getPluginData("pluginSettings")) ?? null;
+  const existing = figma.root.getPluginData("pluginSettings")
+  return JSON.parse(existing || null)
 }
 
 function setPluginSettings(settings: PluginSettings): void {
-  storage.setPluginData("pluginSettings", JSON.stringify(settings));
+  figma.root.setPluginData("pluginSettings", JSON.stringify(settings));
 }
 
 function matchesPrefix(string: string): boolean {
@@ -53,6 +94,21 @@ function isCompletelyTransparent(node: GeometryMixin): boolean {
   }
 
   return true
+}
+
+function getColorData(): ColorData[] {
+  return figma.getLocalPaintStyles().map(style => {
+    const color = style.paints[0]
+    if (color.type === 'SOLID') {
+      return {
+        name: style.name,
+        r: color.color.r,
+        g: color.color.g,
+        b: color.color.b,
+        a: color.opacity
+      }
+    }
+  }).filter(s => s !== undefined)
 }
 
 function getIconData(): IconData[] {
@@ -154,7 +210,9 @@ function getExportData(): ExportData {
   return {
     pluginSettings: getPluginSettings(),
     figmaDocumentName: figma.root.name,
-    icons: getIconData()
+    // icons: getIconData(),
+    icons: [],
+    colors: getColorData(),
   }
 }
 
@@ -168,61 +226,21 @@ function respond(response: ServerResponse, payload: unknown) {
   figma.ui.postMessage(event)
 }
 
-figma.ui.onmessage = (message: ClientCommandMessage) => {
-  switch (message.command) {
-    case ClientCommand.UPDATE_SETTINGS: {
-      setPluginSettings(message.payload as PluginSettings)
-      break;
-    }
-
-    case ClientCommand.PREVIEW: {
-      respond(ServerResponse.DATA_UPDATED, getExportData())
-      break;
-    }
-
-    case ClientCommand.DOWNLOAD: {
-      const data = getExportData()
-      respond(ServerResponse.DATA_UPDATED, data)
-      respond(ServerResponse.DOWNLOAD_SUCCESS, data)
-      break;
-    }
-    
-    case ClientCommand.COPY: {
-      const data = getExportData()
-      respond(ServerResponse.DATA_UPDATED, data)
-      respond(ServerResponse.COPY_SUCCESS, data)
-      break;
-    }
-
-    case ClientCommand.RESIZE: {
-      const {width, height} = message.payload as {width: number, height: number}
-      figma.ui.resize(Math.ceil(width), Math.ceil(height))
-      break;
-    }
-
-    case ClientCommand.NOTIFY: {
-      const text = message.payload as string
-      figma.notify(text)
-      break;
-    }
-  }
-};
-
 function init() {
   figma.showUI(__html__, { width: 320, height: 332 });
 
   const existing = getPluginSettings()
   
-  const framePrefix = existing.framePrefix ?? 'icon'
-  const fileName = existing.fileName ?? 'icons'
-  const sizing = existing.sizing ?? 'frame'
-  const customFormats = existing.customFormats ?? []
-  const selectedFormatId = customFormats.find(f => f.id === existing.selectedFormatId)?.id ?? '$1'
+  const framePrefix = existing?.framePrefix ?? 'icon'
+  const fileName = existing?.fileName ?? 'icons'
+  const sizing = existing?.sizing ?? 'frame'
+  const customFormats = existing?.customFormats ?? []
+  const selectedFormatId = existing?.selectedFormatId 
+    ? customFormats.find(f => f.id === existing.selectedFormatId)?.id
+    : '$1'
 
   const settings = {selectedFormatId, framePrefix, fileName, sizing, customFormats}
   setPluginSettings(settings);
 
   respond(ServerResponse.INIT, settings)
 }
-
-init();

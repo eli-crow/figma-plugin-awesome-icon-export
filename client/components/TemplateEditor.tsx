@@ -2,13 +2,14 @@ import React, {ReactElement, useEffect, useRef} from 'react'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/mode/simple'
 import 'codemirror/lib/codemirror.css'
-import { IconReplacementToken, DocumentReplacementToken } from '../../types'
+import { IconReplacementToken, DocumentReplacementToken, ColorReplacementToken } from '../../types'
 
 CodeMirror.defineSimpleMode("formatTemplate", {
     start: [
         {token: "control-statement", regex: /\{#icon(\s+?.+?)?\}|\{\/icon\}/},
         {token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`)},
         {token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`)},
+        {token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`)},
     ]
 });
 

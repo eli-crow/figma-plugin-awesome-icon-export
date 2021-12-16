@@ -1,9 +1,10 @@
 import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCase } from "lodash-es";
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
-import type { ExportData, Format as ExportFormat, DocumentReplacementDictionary, IconReplacementDictionary } from "../types";
+import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary } from "../types";
 
 const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}([\s\S]+?){\/icon\}/gm
+const COLOR_TEMPLATE_PATTERN = /\{#color(?:\s+?(.+?))?\}([\s\S]+?){\/color\}/gm
 
 const canvas: HTMLCanvasElement = document.createElement("canvas");
 paper.setup(canvas);
@@ -13,7 +14,7 @@ interface Export {
     fileText: string,
 }
 
-const caseTransforms: {readonly [name: string]: (t:string) => string} = {
+const caseTransforms: CaseTransformDictionary = {
     CAMEL: camelCase,
     PASCAL: t => upperFirst(camelCase(t)),
     SNAKE: snakeCase,
@@ -40,67 +41,127 @@ function getFileInfo(data: ExportData, format: ExportFormat): Export {
     return { fileName, fileText };
 }
 
-function parseTemplate(template: string, data: ExportData): string {
-    let fileText = template
-    const globalReplacements: DocumentReplacementDictionary = {
-        DOC_NAME: data.figmaDocumentName,
-        PLUGIN_NAME: manifset.name,
-    }
-    Object.entries(globalReplacements).forEach(([token, replacement]) => {
-        //TODO: use regex to search for any case suffixes and transform the strings if found
-        // https://regexr.com/65681
-        fileText = fileText.replaceAll(token, replacement.toString())
+function getDocumentReplacements(data: ExportData): DocumentReplacementDictionary {
+    const m: DocumentReplacementDictionary = new Map()
+    m[DocumentReplacementToken.DOC_NAME] = data.figmaDocumentName
+    m[DocumentReplacementToken.PLUGIN_NAME] = manifset.name
+    return m
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getColorStyleReplacements(color: ColorData, _index: number): ColorReplacementDictionary {
+    const m = new Map()
+
+    const R_01 = color.r
+    const R_256 = Math.round(R_01 * 255)
+    const R_HEX = R_256.toString(16).padStart(2, '0')
+
+    const G_01 = color.g
+    const G_256 = Math.round(G_01 * 255)
+    const G_HEX = G_256.toString(16).padStart(2, '0')
+
+    const B_01 = color.b
+    const B_256 = Math.round(B_01 * 255)
+    const B_HEX = B_256.toString(16).padStart(2, '0')
+
+    const A_01 = color.a
+    const A_256 = Math.round(A_01 * 255)
+    const A_HEX = A_256.toString(16).padStart(2, '0')
+
+    const RGBA_CSS = `rgba(${R_256}, ${G_256}, ${B_256}, ${A_01})`
+    const RGBA_HEX = `${R_HEX}${G_HEX}${B_HEX}${A_HEX}`
+    const ARGB_HEX = `${A_HEX}${R_HEX}${G_HEX}${B_HEX}`
+
+    //order is important, make sure any tokens whose names are supersets of others are included before the subset
+    m[ColorReplacementToken.RGBA_CSS] = RGBA_CSS
+    m[ColorReplacementToken.RGBA_HEX] = RGBA_HEX
+    m[ColorReplacementToken.ARGB_HEX] = ARGB_HEX
+    m[ColorReplacementToken.NAME] = color.name
+    m[ColorReplacementToken.R_01] = R_01
+    m[ColorReplacementToken.R_256] = R_256
+    m[ColorReplacementToken.R_HEX] = R_HEX
+    m[ColorReplacementToken.G_01] = G_01
+    m[ColorReplacementToken.G_256] = G_256
+    m[ColorReplacementToken.G_HEX] = G_HEX
+    m[ColorReplacementToken.B_01] = B_01
+    m[ColorReplacementToken.B_256] = B_256
+    m[ColorReplacementToken.B_HEX] = B_HEX
+    m[ColorReplacementToken.A_01] = A_01
+    m[ColorReplacementToken.A_HEX] = A_HEX
+
+    return m
+}
+
+function getIconReplacements(icon: IconData, index: number): IconReplacementDictionary {
+    const m = new Map()
+
+    const name = icon.name.trim()
+
+    //order is important, make sure any tokens whose names are supersets of others are included before the subset
+    m[IconReplacementToken.I_NAME] = name
+    m[IconReplacementToken.I_WIDTH] = icon.width
+    m[IconReplacementToken.I_HEIGHT] = icon.height
+    m[IconReplacementToken.I_LEFT] = icon.offsetX
+    m[IconReplacementToken.I_TOP] = icon.offsetX
+    m[IconReplacementToken.I_PATH] = icon.data
+    m[IconReplacementToken.I_INDEX] = index
+    m[IconReplacementToken.I_HUNDREDS_INDEX] = index.toString().padStart(3, '0')
+
+    return m
+}
+
+function replaceDictionary(toReplace: string, dictionary: unknown, caseTransforms: CaseTransformDictionary): string {
+    if (!dictionary) return toReplace
+
+    Object.entries(dictionary).forEach(([token, replacement]) => {
+        const regex = new RegExp(`${token}(?:_(${Object.keys(caseTransforms).join('|')}))?`, 'g')
+        replacement = replacement.toString()
+        toReplace = toReplace.replaceAll(regex, (_wholeMatch: string, caseTransform: string) => {
+            if (caseTransform) return caseTransforms[caseTransform](replacement)
+            else return replacement
+        })
     })
 
-    const regex = new RegExp(ICON_TEMPLATE_PATTERN)
+    return toReplace
+}
+
+function replaceDictionaryIterator(toReplace: string, contextRegex: RegExp, items: unknown[], dictionaryFunc: (unknown, number) => unknown, caseTransforms: CaseTransformDictionary): string {
+    contextRegex = new RegExp(contextRegex)
+
     let match
-    while ((match = regex.exec(fileText))) {
+    while ((match = contextRegex.exec(toReplace))) {
         const wholeMatch = match[0]
         const separator = match[1]
         const iconTemplate = match[2]
 
-        const iconLines = []
+        const lines = []
 
-        data.icons.forEach((icon, i, a) => {
+        items.forEach((item, i, a) => {
             let iconLine = iconTemplate
-            // for now, no token can be a subset of another token, due to matching order
-            const name = icon.name.trim()
-            const iconReplacements: IconReplacementDictionary = {
-                I_NAME: name,
-                I_WIDTH: icon.width,
-                I_HEIGHT: icon.height,
-                I_LEFT: icon.offsetX,
-                I_TOP: icon.offsetX,
-                I_PATH: icon.data,
-                I_INDEX: i,
-                I_HUNDREDS_INDEX: i.toString().padStart(3, '0'),
 
-                //TODO: remove case tokens from this dictionary once case suffixes implemented
-                I_CAMEL: caseTransforms.CAMEL(name),
-                I_PASCAL: caseTransforms.PASCAL(name),
-                I_CONSTANT: caseTransforms.CONSTANT(name),
-                I_KEBAB: caseTransforms.KEBAB(name),
-                I_SNAKE: caseTransforms.SNAKE(name),
-            }
+            iconLine = replaceDictionary(iconLine, dictionaryFunc(item, i), caseTransforms)
 
-            //TODO: generate tokens for each variant property
-
-            Object.entries(iconReplacements).forEach(([token, replacement]) => {
-                replacement = replacement.toString()
-                //TODO: use regex to search for any case suffixes and transform the strings if found
-                // https://regexr.com/65681
-                iconLine = iconLine.replaceAll(token, replacement)
-            })
             if (separator && i !== a.length - 1) {
                 iconLine += separator
             }
-            iconLines.push(iconLine)
+            lines.push(iconLine)
         })
-        
+
         const start = match.index
         const end = start + wholeMatch.length
-        fileText = fileText.slice(0, start) + iconLines.join('\n') + fileText.slice(end)
+
+        toReplace = toReplace.slice(0, start) + lines.join('\n') + toReplace.slice(end)
     }
+
+    return toReplace
+}
+
+function parseTemplate(template: string, data: ExportData): string {
+    let fileText = template
+
+    fileText = replaceDictionary(fileText, getDocumentReplacements(data), caseTransforms)
+    fileText = replaceDictionaryIterator(fileText, ICON_TEMPLATE_PATTERN, data.icons, getIconReplacements, caseTransforms)
+    fileText = replaceDictionaryIterator(fileText, COLOR_TEMPLATE_PATTERN, data.colors, getColorStyleReplacements, caseTransforms)
 
     return fileText
 }
