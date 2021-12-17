@@ -1,6 +1,6 @@
 /* eslint-disable */
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const HtmlWebpackInlineSourcePlugin = require("html-webpack-inline-source-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+const HtmlWebpackInlineSourcePlugin = require("html-webpack-inline-source-plugin")
 
 module.exports = (env, argv) => ({
   mode: argv.mode === "production" ? "production" : "development",
@@ -21,6 +21,12 @@ module.exports = (env, argv) => ({
 
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
+    alias: { 
+      "react": "preact/compat",
+      "react-dom/test-utils": "preact/test-utils",
+      "react-dom": "preact/compat",
+      "react/jsx-runtime": "preact/jsx-runtime"
+    },
   },
 
   output: {
@@ -33,8 +39,8 @@ module.exports = (env, argv) => ({
       template: "./client/index.html",
       filename: "client.html",
       inlineSource: ".(js)$",
-      chunks: ["client"],
+      chunks: ["client"], 
     }),
     new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
   ],
-});
+})
