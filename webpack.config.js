@@ -1,6 +1,6 @@
 /* eslint-disable */
 const HtmlWebpackPlugin = require("html-webpack-plugin")
-const HtmlWebpackInlineSourcePlugin = require("html-webpack-inline-source-plugin")
+const InlineChunkHtmlPlugin = require("react-dev-utils/InlineChunkHtmlPlugin")
 
 module.exports = (env, argv) => ({
   mode: argv.mode === "production" ? "production" : "development",
@@ -14,14 +14,14 @@ module.exports = (env, argv) => ({
   module: {
     rules: [
       { test: /\.tsx?$/, use: "ts-loader", exclude: /node_modules/ },
-      { test: /\.css$/, loader: [{ loader: "style-loader" }, { loader: "css-loader" }] },
-      { test: /\.(png|jpg|gif|webp|svg)$/, loader: [{ loader: "url-loader" }] },
+      { test: /\.css$/, use: [{ loader: "style-loader" }, { loader: "css-loader" }] },
+      { test: /\.(png|jpg|gif|webp|svg)$/, type: "asset/resoource" },
     ],
   },
 
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
-    alias: { 
+    alias: {
       "react": "preact/compat",
       "react-dom/test-utils": "preact/test-utils",
       "react-dom": "preact/compat",
@@ -36,11 +36,12 @@ module.exports = (env, argv) => ({
 
   plugins: [
     new HtmlWebpackPlugin({
+      inject: true,
       template: "./client/index.html",
       filename: "client.html",
-      inlineSource: ".(js)$",
-      chunks: ["client"], 
+      cache: false,
+      excludeChunks: ['server'],
     }),
-    new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
+    new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/client/]),
   ],
 })

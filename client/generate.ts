@@ -6,9 +6,6 @@ import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorRep
 const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}([\s\S]+?){\/icon\}/gm
 const COLOR_TEMPLATE_PATTERN = /\{#color(?:\s+?(.+?))?\}([\s\S]+?){\/color\}/gm
 
-const canvas: HTMLCanvasElement = document.createElement("canvas");
-paper.setup(canvas);
-
 interface Export {
     fileName: string,
     fileText: string,
@@ -26,6 +23,9 @@ const caseTransforms: CaseTransformDictionary = {
 }
 
 function getFileInfo(data: ExportData, format: ExportFormat): Export {
+    const canvas: HTMLCanvasElement = document.createElement("canvas");
+    paper.setup(canvas);
+
     //corrects winding order and some other things. Couldn't figure out how to do this in code.ts.
     data.icons.forEach(icon => {
         const p = new paper.CompoundPath(icon.data);
