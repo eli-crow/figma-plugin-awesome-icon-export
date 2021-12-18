@@ -70,11 +70,13 @@ function getColorStyleReplacements(color: ColorData, _index: number): ColorRepla
 
     const RGBA_CSS = `rgba(${R_256}, ${G_256}, ${B_256}, ${A_01})`
     const RGBA_HEX = `${R_HEX}${G_HEX}${B_HEX}${A_HEX}`
+    const RGB_HEX = `${R_HEX}${G_HEX}${B_HEX}`
     const ARGB_HEX = `${A_HEX}${R_HEX}${G_HEX}${B_HEX}`
 
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
     m[ColorReplacementToken.RGBA_CSS] = RGBA_CSS
     m[ColorReplacementToken.RGBA_HEX] = RGBA_HEX
+    m[ColorReplacementToken.RGB_HEX] = RGB_HEX
     m[ColorReplacementToken.ARGB_HEX] = ARGB_HEX
     m[ColorReplacementToken.NAME] = color.name
     m[ColorReplacementToken.R_01] = R_01
@@ -98,14 +100,14 @@ function getIconReplacements(icon: IconData, index: number): IconReplacementDict
     const name = icon.name.trim()
 
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
-    m[IconReplacementToken.I_NAME] = name
-    m[IconReplacementToken.I_WIDTH] = icon.width
-    m[IconReplacementToken.I_HEIGHT] = icon.height
-    m[IconReplacementToken.I_LEFT] = icon.offsetX
-    m[IconReplacementToken.I_TOP] = icon.offsetX
-    m[IconReplacementToken.I_PATH] = icon.data
-    m[IconReplacementToken.I_INDEX] = index
-    m[IconReplacementToken.I_HUNDREDS_INDEX] = index.toString().padStart(3, '0')
+    m[IconReplacementToken.NAME] = name
+    m[IconReplacementToken.WIDTH] = icon.width
+    m[IconReplacementToken.HEIGHT] = icon.height
+    m[IconReplacementToken.LEFT] = icon.offsetX
+    m[IconReplacementToken.TOP] = icon.offsetX
+    m[IconReplacementToken.PATH_DATA] = icon.data
+    m[IconReplacementToken.HUNDREDS_INDEX] = index.toString().padStart(3, '0')
+    m[IconReplacementToken.INDEX] = index
 
     return m
 }

@@ -110,12 +110,12 @@ function EditorView(): ReactElement {
                                 <span className="cm-icon-replacement-token">{"{#icon"}</span> ,<span className="cm-icon-replacement-token">{"}"}</span>...<span className="cm-icon-replacement-token">{"{/icon}"}</span>
                             </code>
                             <p className="SyntaxHelp-description">
-                                Text between these tags is generated for each icon. Optionally specify some text in the opening tag to add some text to every line except the last.
+                                Text between these tags is generated for each icon. Optionally specify a separator (such as a comma) to insert between lines.
                             </p>
                         </div>
                         <div className="SyntaxHelp-column">
                             <code className="SyntaxHelp-code">
-                                {[IconReplacementToken.I_NAME, IconReplacementToken.I_WIDTH, IconReplacementToken.I_HEIGHT, IconReplacementToken.I_INDEX, IconReplacementToken.I_PATH, IconReplacementToken.I_LEFT, IconReplacementToken.I_TOP].map(
+                                {Object.values(IconReplacementToken).map(
                                     (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
                                 )}
                             </code>
@@ -125,7 +125,7 @@ function EditorView(): ReactElement {
                         </div>
                         <div className="SyntaxHelp-column">
                             <code className="SyntaxHelp-code">
-                                {[CaseTransformKey.CAMEL, CaseTransformKey.KEBAB, CaseTransformKey.PASCAL, CaseTransformKey.SNAKE, CaseTransformKey.CONSTANT].map(
+                                {Object.values(CaseTransformKey).map(
                                     (t, i, a) => (<Fragment key={t}><span className="cm-icon-replacement-token">_{t}</span>{i !== a.length - 1 && ", "}</Fragment>)
                                 )}
                             </code>

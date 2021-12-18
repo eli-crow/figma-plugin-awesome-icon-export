@@ -1,16 +1,27 @@
-import React, {ReactElement, useEffect, useRef} from 'react'
+import React, { ReactElement, useEffect, useRef } from 'react'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/mode/simple'
 import 'codemirror/lib/codemirror.css'
 import { IconReplacementToken, DocumentReplacementToken, ColorReplacementToken } from '../../types'
 
+const DOCUMENT_REPLACEMENT_TOKEN = { token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`) }
 CodeMirror.defineSimpleMode("formatTemplate", {
     start: [
-        {token: "control-statement", regex: /\{#icon(\s+?.+?)?\}|\{\/icon\}/},
-        {token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`)},
-        {token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`)},
-        {token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`)},
-    ]
+        DOCUMENT_REPLACEMENT_TOKEN,
+        { token: "icon-start", regex: /\{#icon(\s+?.+?)?\}/, next: 'icon' },
+        { token: "color-start", regex: /\{#color(\s+?.+?)?\}/, next: 'color' },
+    ],
+    icon: [
+        DOCUMENT_REPLACEMENT_TOKEN,
+        { token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`) },
+        { token: "icon-end", regex: /\{\/icon\}/, next: 'start' },
+    ],
+    color: [
+        DOCUMENT_REPLACEMENT_TOKEN,
+        { token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`) },
+        { token: "color-end", regex: /\{\/color\}/, next: 'start' },
+    ],
+
 });
 
 interface Props {
@@ -19,7 +30,7 @@ interface Props {
     onInput?: (text: string) => void,
 }
 
-function TemplateEditor ({defaultValue, onChange, onInput}: Props): ReactElement {
+function TemplateEditor({ defaultValue, onChange, onInput }: Props): ReactElement {
     const root = useRef()
     const editor = useRef()
 
@@ -38,7 +49,7 @@ function TemplateEditor ({defaultValue, onChange, onInput}: Props): ReactElement
     }, [])
 
     return (
-        <div className="TemplateEditor" ref={root}/>
+        <div className="TemplateEditor" ref={root} />
     )
 }
 

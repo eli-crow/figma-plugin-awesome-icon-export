@@ -96,14 +96,14 @@ export enum DocumentReplacementToken {
 export type DocumentReplacementDictionary = Map<DocumentReplacementToken, string>
 
 export enum IconReplacementToken {
-    I_NAME = "I_NAME",
-    I_WIDTH = "I_WIDTH",
-    I_HEIGHT = "I_HEIGHT",
-    I_LEFT = "I_LEFT",
-    I_TOP = "I_TOP",
-    I_PATH = "I_PATH",
-    I_INDEX = "I_INDEX",
-    I_HUNDREDS_INDEX = "I_HUNDREDS_INDEX",
+    NAME = "NAME",
+    WIDTH = "WIDTH",
+    HEIGHT = "HEIGHT",
+    LEFT = "LEFT",
+    TOP = "TOP",
+    PATH_DATA = "PATH_DATA",
+    INDEX = "INDEX",
+    HUNDREDS_INDEX = "HUNDREDS_INDEX",
 }
 export type IconReplacementDictionary = Map<IconReplacementToken, string>
 
@@ -122,6 +122,7 @@ export enum ColorReplacementToken {
     A_HEX = "A_HEX",
     RGBA_CSS = "RGBA_CSS",
     RGBA_HEX = "RGBA_HEX",
+    RGB_HEX = "RGB_HEX",
     ARGB_HEX = "ARGB_HEX",
 }
 export type ColorReplacementDictionary = Map<ColorReplacementToken, string>
