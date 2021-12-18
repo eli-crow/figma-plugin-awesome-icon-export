@@ -1,10 +1,7 @@
 import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCase } from "lodash-es";
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
-import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary } from "../types";
-
-const ICON_TEMPLATE_PATTERN = /\{#icon(?:\s+?(.+?))?\}([\s\S]+?){\/icon\}/gm
-const COLOR_TEMPLATE_PATTERN = /\{#color(?:\s+?(.+?))?\}([\s\S]+?){\/color\}/gm
+import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary } from "../types";
 
 interface Export {
     fileName: string,
@@ -43,14 +40,15 @@ function getFileInfo(data: ExportData, format: ExportFormat): Export {
 
 function getDocumentReplacements(data: ExportData): DocumentReplacementDictionary {
     const m: DocumentReplacementDictionary = new Map()
-    m[DocumentReplacementToken.DOC_NAME] = data.figmaDocumentName
-    m[DocumentReplacementToken.PLUGIN_NAME] = manifset.name
+
+    m.set(DocumentReplacementToken.DOC_NAME, data.figmaDocumentName)
+    m.set(DocumentReplacementToken.PLUGIN_NAME, manifset.name)
+
     return m
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getColorStyleReplacements(color: ColorData, _index: number): ColorReplacementDictionary {
-    const m = new Map()
 
     const R_01 = color.r
     const R_256 = Math.round(R_01 * 255)
@@ -73,49 +71,51 @@ function getColorStyleReplacements(color: ColorData, _index: number): ColorRepla
     const RGB_HEX = `${R_HEX}${G_HEX}${B_HEX}`
     const ARGB_HEX = `${A_HEX}${R_HEX}${G_HEX}${B_HEX}`
 
+    const m: ColorReplacementDictionary = new Map()
+
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
-    m[ColorReplacementToken.RGBA_CSS] = RGBA_CSS
-    m[ColorReplacementToken.RGBA_HEX] = RGBA_HEX
-    m[ColorReplacementToken.RGB_HEX] = RGB_HEX
-    m[ColorReplacementToken.ARGB_HEX] = ARGB_HEX
-    m[ColorReplacementToken.NAME] = color.name
-    m[ColorReplacementToken.R_01] = R_01
-    m[ColorReplacementToken.R_256] = R_256
-    m[ColorReplacementToken.R_HEX] = R_HEX
-    m[ColorReplacementToken.G_01] = G_01
-    m[ColorReplacementToken.G_256] = G_256
-    m[ColorReplacementToken.G_HEX] = G_HEX
-    m[ColorReplacementToken.B_01] = B_01
-    m[ColorReplacementToken.B_256] = B_256
-    m[ColorReplacementToken.B_HEX] = B_HEX
-    m[ColorReplacementToken.A_01] = A_01
-    m[ColorReplacementToken.A_HEX] = A_HEX
+    m.set(ColorReplacementToken.RGBA_CSS, RGBA_CSS)
+    m.set(ColorReplacementToken.RGBA_HEX, RGBA_HEX)
+    m.set(ColorReplacementToken.RGB_HEX, RGB_HEX)
+    m.set(ColorReplacementToken.ARGB_HEX, ARGB_HEX)
+    m.set(ColorReplacementToken.NAME, color.name)
+    m.set(ColorReplacementToken.R_01, R_01.toString())
+    m.set(ColorReplacementToken.R_256, R_256.toString())
+    m.set(ColorReplacementToken.R_HEX, R_HEX)
+    m.set(ColorReplacementToken.G_01, G_01.toString())
+    m.set(ColorReplacementToken.G_256, G_256.toString())
+    m.set(ColorReplacementToken.G_HEX, G_HEX)
+    m.set(ColorReplacementToken.B_01, B_01.toString())
+    m.set(ColorReplacementToken.B_256, B_256.toString())
+    m.set(ColorReplacementToken.B_HEX, B_HEX)
+    m.set(ColorReplacementToken.A_01, A_01.toString())
+    m.set(ColorReplacementToken.A_HEX, A_HEX)
 
     return m
 }
 
 function getIconReplacements(icon: IconData, index: number): IconReplacementDictionary {
-    const m = new Map()
+    const NAME = icon.name.trim()
 
-    const name = icon.name.trim()
+    const m: IconReplacementDictionary = new Map()
 
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
-    m[IconReplacementToken.NAME] = name
-    m[IconReplacementToken.WIDTH] = icon.width
-    m[IconReplacementToken.HEIGHT] = icon.height
-    m[IconReplacementToken.LEFT] = icon.offsetX
-    m[IconReplacementToken.TOP] = icon.offsetX
-    m[IconReplacementToken.PATH_DATA] = icon.data
-    m[IconReplacementToken.HUNDREDS_INDEX] = index.toString().padStart(3, '0')
-    m[IconReplacementToken.INDEX] = index
+    m.set(IconReplacementToken.NAME, NAME)
+    m.set(IconReplacementToken.WIDTH, icon.width.toString())
+    m.set(IconReplacementToken.HEIGHT, icon.height.toString())
+    m.set(IconReplacementToken.LEFT, icon.offsetX.toString())
+    m.set(IconReplacementToken.TOP, icon.offsetX.toString())
+    m.set(IconReplacementToken.PATH_DATA, icon.data)
+    m.set(IconReplacementToken.HUNDREDS_INDEX, index.toString().padStart(3, '0'))
+    m.set(IconReplacementToken.INDEX, index.toString())
 
     return m
 }
 
-function replaceDictionary(toReplace: string, dictionary: unknown, caseTransforms: CaseTransformDictionary): string {
+function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary, caseTransforms: CaseTransformDictionary): string {
     if (!dictionary) return toReplace
 
-    Object.entries(dictionary).forEach(([token, replacement]) => {
+    dictionary.forEach((replacement, token) => {
         const regex = new RegExp(`${token}(?:_(${Object.keys(caseTransforms).join('|')}))?`, 'g')
         replacement = replacement.toString()
         toReplace = toReplace.replaceAll(regex, (_wholeMatch: string, caseTransform: string) => {
@@ -127,11 +127,17 @@ function replaceDictionary(toReplace: string, dictionary: unknown, caseTransform
     return toReplace
 }
 
-function replaceDictionaryIterator(toReplace: string, contextRegex: RegExp, items: unknown[], dictionaryFunc: (unknown, number) => unknown, caseTransforms: CaseTransformDictionary): string {
-    contextRegex = new RegExp(contextRegex)
+function replaceDictionaryIterator<TItem>(
+    toReplace: string,
+    context: Context,
+    items: TItem[],
+    dictionaryFunc: (item: TItem, index: number) => ReplacementDictionary,
+    caseTransforms: CaseTransformDictionary,
+): string {
+    const regex = new RegExp(`\\{#${context}(?:\\s+?(.+?))?\\}([\\s\\S]+?){\\/${context}\\}`, 'gm')
 
     let match
-    while ((match = contextRegex.exec(toReplace))) {
+    while ((match = regex.exec(toReplace))) {
         const wholeMatch = match[0]
         const separator = match[1]
         const iconTemplate = match[2]
@@ -146,6 +152,7 @@ function replaceDictionaryIterator(toReplace: string, contextRegex: RegExp, item
             if (separator && i !== a.length - 1) {
                 iconLine += separator
             }
+
             lines.push(iconLine)
         })
 
@@ -162,8 +169,8 @@ function parseTemplate(template: string, data: ExportData): string {
     let fileText = template
 
     fileText = replaceDictionary(fileText, getDocumentReplacements(data), caseTransforms)
-    fileText = replaceDictionaryIterator(fileText, ICON_TEMPLATE_PATTERN, data.icons, getIconReplacements, caseTransforms)
-    fileText = replaceDictionaryIterator(fileText, COLOR_TEMPLATE_PATTERN, data.colors, getColorStyleReplacements, caseTransforms)
+    fileText = replaceDictionaryIterator(fileText, Context.Icon, data.icons, getIconReplacements, caseTransforms)
+    fileText = replaceDictionaryIterator(fileText, Context.Color, data.colors, getColorStyleReplacements, caseTransforms)
 
     return fileText
 }

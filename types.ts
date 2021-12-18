@@ -89,6 +89,11 @@ export enum ServerResponse {
     COPY_SUCCESS = 'COPY_SUCCESS',
 }
 
+export enum Context {
+    Color = 'color',
+    Icon = 'icon',
+}
+
 export enum DocumentReplacementToken {
     DOC_NAME = "DOC_NAME",
     PLUGIN_NAME = "PLUGIN_NAME",
@@ -138,3 +143,7 @@ export enum CaseTransformKey {
     TITLE = "TITLE",
 }
 export type CaseTransformDictionary = Record<CaseTransformKey, (t: string) => string>
+
+export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken
+
+export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary |ColorReplacementDictionary
