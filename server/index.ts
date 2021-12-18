@@ -57,10 +57,11 @@ function matchesPrefix(string: string): boolean {
   return Boolean(string.match(prefixRegex))
 }
 
-function toIconName(string: string): string {
+function getFrameNormalizedName(frame: FrameNode): string {
   const settings = getPluginSettings();
+  const iconVariantKeysRegex = /\b\S+?=/g
   const prefixRegex = new RegExp(`^\\s*${settings.framePrefix}\\s*/\\s*`, 'g')
-  return string.trim().replace(prefixRegex, '')
+  return frame.name.trim().replaceAll(iconVariantKeysRegex, '').replace(prefixRegex, '')
 }
 
 function isCompletelyTransparent(node: GeometryMixin): boolean {
@@ -111,16 +112,31 @@ function getColorData(): ColorData[] {
   }).filter(s => s !== undefined)
 }
 
+function getIconFrames(): FrameNode[] {
+  const settings = getPluginSettings()
+
+  const nodes = [
+    ...figma.root.findAll(n =>
+      (n.type === 'FRAME' || n.type === 'COMPONENT')
+      && n.visible
+      && n.opacity > 0
+      && matchesPrefix(n.name)
+    ) as FrameNode[]
+  ]
+
+  const componentSets = figma.root.findAll(n => n.type === 'COMPONENT_SET' && n.name.trim() === settings.framePrefix.trim()) as ComponentSetNode[]
+  componentSets.forEach(set => {
+    nodes.push(...set.children as FrameNode[])
+  })
+
+  return nodes
+}
+
 function getIconData(): IconData[] {
-  const iconFrames: Array<FrameNode> = figma.root.findAll(n =>
-    (n.type === 'FRAME' || n.type === 'COMPONENT')
-    && n.visible
-    && n.opacity > 0
-    && matchesPrefix(n.name)
-  ) as Array<FrameNode>
 
   const results: IconData[] = [];
-  iconFrames.forEach(frame => {
+
+  getIconFrames().forEach(frame => {
 
     // TODO: support nested frames
     // TODO: support variants
@@ -186,7 +202,7 @@ function getIconData(): IconData[] {
 
     //TODO: isVariant, properties
     const iconData: IconData = {
-      name: toIconName(frame.name),
+      name: getFrameNormalizedName(frame),
       width: frame.width,
       height: frame.height,
       offsetX: flattened.x,
@@ -246,7 +262,7 @@ function init() {
     ) {
       return existing.selectedFormatId
     }
-    
+
     return "$1"
   }
   const selectedFormatId = getDefaultSelectedFormatId()

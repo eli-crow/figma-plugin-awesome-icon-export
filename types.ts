@@ -132,6 +132,9 @@ export enum ColorReplacementToken {
 }
 export type ColorReplacementDictionary = Map<ColorReplacementToken, string>
 
+export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken
+export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary | ColorReplacementDictionary
+
 export enum CaseTransformKey {
     CAMEL = "CAMEL",
     PASCAL = "PASCAL",
@@ -143,7 +146,3 @@ export enum CaseTransformKey {
     TITLE = "TITLE",
 }
 export type CaseTransformDictionary = Record<CaseTransformKey, (t: string) => string>
-
-export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken
-
-export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary |ColorReplacementDictionary
