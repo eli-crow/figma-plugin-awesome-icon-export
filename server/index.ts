@@ -234,9 +234,22 @@ function init() {
   const fileName = existing?.fileName ?? 'icons'
   const sizing = existing?.sizing ?? 'frame'
   const customFormats = existing?.customFormats ?? []
-  const selectedFormatId = existing?.selectedFormatId
-    ? customFormats.find(f => f.id === existing.selectedFormatId)?.id
-    : '$1'
+
+  function getDefaultSelectedFormatId() {
+    const id = existing?.selectedFormatId
+
+    if (!id) return "$1"
+
+    if (
+      existing.selectedFormatId.startsWith("$") ||
+      customFormats.some(f => f.id === existing.selectedFormatId)
+    ) {
+      return existing.selectedFormatId
+    }
+    
+    return "$1"
+  }
+  const selectedFormatId = getDefaultSelectedFormatId()
 
   const settings = { selectedFormatId, framePrefix, fileName, sizing, customFormats }
   setPluginSettings(settings);
