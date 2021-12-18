@@ -236,7 +236,7 @@ a {
   font-weight: 600;
   padding: 0;
 }
-.EditorView_tab[data-active="false"] {
+.EditorView_tab:not([data-active]) {
   color: var(--black3);
 }
 .EditorView_tab-content {
