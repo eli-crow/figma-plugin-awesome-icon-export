@@ -226,7 +226,7 @@ function respond(response: ServerResponse, payload: unknown) {
 }
 
 function init() {
-  figma.showUI(__html__, { width: 320, height: 332 });
+  figma.showUI(__html__, { width: 320, height: 305 });
 
   const existing = getPluginSettings()
 
