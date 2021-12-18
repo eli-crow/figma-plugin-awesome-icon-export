@@ -2,7 +2,7 @@
 import copyToClipboard from "copy-to-clipboard";
 import getFileInfo from "./generate";
 import defaultFormats from './formats'
-import { useEffect, useState, createContext } from "react";
+import { useState, createContext } from "react";
 import { ExportData, PluginSettings, Format, ClientCommand, ServerResponse, ServerResponseMessage, ClientCommandMessage } from "../types";
 import { v4 as uuid } from 'uuid'
 
@@ -71,7 +71,7 @@ function useStore(): PluginStore {
   const formats = settings 
     ? [...defaultFormats, ...settings.customFormats]
     : defaultFormats
-  const activeFormat = formats.find(f => f.id === settings?.selectedFormatId)
+  const activeFormat = formats.find(f => f.id === settings?.selectedFormatId) ?? formats[0]
   const customFormats = settings?.customFormats;
   const isLoaded = settings !== null;
   

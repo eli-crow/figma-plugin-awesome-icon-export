@@ -18,7 +18,7 @@ figma.ui.onmessage = (message: ClientCommandMessage) => {
       respond(ServerResponse.DOWNLOAD_SUCCESS, data)
       break;
     }
-    
+
     case ClientCommand.COPY: {
       const data = getExportData()
       respond(ServerResponse.DATA_UPDATED, data)
@@ -27,7 +27,7 @@ figma.ui.onmessage = (message: ClientCommandMessage) => {
     }
 
     case ClientCommand.RESIZE: {
-      const {width, height} = message.payload as {width: number, height: number}
+      const { width, height } = message.payload as { width: number, height: number }
       figma.ui.resize(Math.ceil(width), Math.ceil(height))
       break;
     }
@@ -229,16 +229,16 @@ function init() {
   figma.showUI(__html__, { width: 320, height: 332 });
 
   const existing = getPluginSettings()
-  
+
   const framePrefix = existing?.framePrefix ?? 'icon'
   const fileName = existing?.fileName ?? 'icons'
   const sizing = existing?.sizing ?? 'frame'
   const customFormats = existing?.customFormats ?? []
-  const selectedFormatId = existing?.selectedFormatId 
+  const selectedFormatId = existing?.selectedFormatId
     ? customFormats.find(f => f.id === existing.selectedFormatId)?.id
     : '$1'
 
-  const settings = {selectedFormatId, framePrefix, fileName, sizing, customFormats}
+  const settings = { selectedFormatId, framePrefix, fileName, sizing, customFormats }
   setPluginSettings(settings);
 
   respond(ServerResponse.INIT, settings)

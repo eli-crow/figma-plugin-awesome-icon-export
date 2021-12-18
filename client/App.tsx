@@ -16,11 +16,8 @@ function App(): ReactElement {
     else if (store.editingFormat) {
       return <Editor/>
     }
-    else if (store.activeFormat) {
-      return <Home/>
-    }
     else {
-      return <pre>{JSON.stringify(store, null, '\t')}</pre>
+      return <Home/>
     }
   }
   
