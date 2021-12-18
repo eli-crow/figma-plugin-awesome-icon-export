@@ -148,7 +148,7 @@ function getIconData(): IconData[] {
     //hacky hack hack.
     const clonedDescendents = descendents.map(n => {
       const clone = n.clone()
-      if (frame.rotation !== 0) {
+      if (frame.rotation !== 0 && 'rotation' in clone) {
         clone.rotation -= frame.rotation;
       }
 
@@ -210,8 +210,7 @@ function getExportData(): ExportData {
   return {
     pluginSettings: getPluginSettings(),
     figmaDocumentName: figma.root.name,
-    // icons: getIconData(),
-    icons: [],
+    icons: getIconData(),
     colors: getColorData(),
   }
 }
