@@ -8,7 +8,7 @@ interface Export {
     fileText: string,
 }
 
-const caseTransforms: CaseTransformDictionary = {
+const CASE_TRANSFORMS: CaseTransformDictionary = {
     CAMEL: camelCase,
     PASCAL: t => upperFirst(camelCase(t)),
     SNAKE: snakeCase,
@@ -49,7 +49,6 @@ function getDocumentReplacements(data: ExportData): DocumentReplacementDictionar
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getColorStyleReplacements(color: ColorData, _index: number): ColorReplacementDictionary {
-
     const R_01 = color.r
     const R_256 = Math.round(R_01 * 255)
     const R_HEX = R_256.toString(16).padStart(2, '0')
@@ -112,14 +111,14 @@ function getIconReplacements(icon: IconData, index: number): IconReplacementDict
     return m
 }
 
-function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary, caseTransforms: CaseTransformDictionary): string {
+function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary): string {
     if (!dictionary) return toReplace
 
     dictionary.forEach((replacement, token) => {
-        const regex = new RegExp(`${token}(?:_(${Object.keys(caseTransforms).join('|')}))?`, 'g')
+        const regex = new RegExp(`${token}(?:_(${Object.keys(CASE_TRANSFORMS).join('|')}))?`, 'g')
         replacement = replacement.toString()
         toReplace = toReplace.replaceAll(regex, (_wholeMatch: string, caseTransform: string) => {
-            if (caseTransform) return caseTransforms[caseTransform](replacement)
+            if (caseTransform) return CASE_TRANSFORMS[caseTransform](replacement)
             else return replacement
         })
     })
@@ -132,7 +131,6 @@ function replaceDictionaryIterator<TItem>(
     context: Context,
     items: TItem[],
     dictionaryFunc: (item: TItem, index: number) => ReplacementDictionary,
-    caseTransforms: CaseTransformDictionary,
 ): string {
     const regex = new RegExp(`\\{#${context}(?:\\s+?(.+?))?\\}([\\s\\S]+?){\\/${context}\\}`, 'gm')
 
@@ -147,7 +145,7 @@ function replaceDictionaryIterator<TItem>(
         items.forEach((item, i, a) => {
             let iconLine = iconTemplate
 
-            iconLine = replaceDictionary(iconLine, dictionaryFunc(item, i), caseTransforms)
+            iconLine = replaceDictionary(iconLine, dictionaryFunc(item, i))
 
             if (separator && i !== a.length - 1) {
                 iconLine += separator
@@ -168,9 +166,9 @@ function replaceDictionaryIterator<TItem>(
 function parseTemplate(template: string, data: ExportData): string {
     let fileText = template
 
-    fileText = replaceDictionary(fileText, getDocumentReplacements(data), caseTransforms)
-    fileText = replaceDictionaryIterator(fileText, Context.Icon, data.icons, getIconReplacements, caseTransforms)
-    fileText = replaceDictionaryIterator(fileText, Context.Color, data.colors, getColorStyleReplacements, caseTransforms)
+    fileText = replaceDictionary(fileText, getDocumentReplacements(data))
+    fileText = replaceDictionaryIterator(fileText, Context.Icon, data.icons, getIconReplacements)
+    fileText = replaceDictionaryIterator(fileText, Context.Color, data.colors, getColorStyleReplacements)
 
     return fileText
 }
