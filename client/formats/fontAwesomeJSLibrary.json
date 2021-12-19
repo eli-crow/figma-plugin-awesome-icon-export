@@ -1,6 +1,0 @@
-{
-    "id": "$1",
-    "name": "Font Awesome JS Library",
-    "template": "// generated from “DOC_NAME” using the “PLUGIN_NAME” Figma Plugin\n{#icon}export const faNAME_PASCAL = { prefix: \"fas\", iconName: \"NAME\", icon: [WIDTH, HEIGHT, [], \"eHUNDREDS_INDEX\", \"PATH_DATA\"]}{/icon}\n",
-    "extension": "js"
-}

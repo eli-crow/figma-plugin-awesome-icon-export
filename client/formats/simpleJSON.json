@@ -1,6 +1,0 @@
-{
-    "id": "$3",
-    "name": "Simple JSON",
-    "template": "{\n{#icon ,}\t\"NAME_CAMEL\": {\"w\": WIDTH, \"h\": HEIGHT, \"title\": \"NAME\", \"d\": \"PATH_DATA\"}{/icon}\n}\n",
-    "extension": "json"
-}
