@@ -5,24 +5,60 @@ import 'codemirror/lib/codemirror.css'
 import { IconReplacementToken, DocumentReplacementToken, ColorReplacementToken } from '../../types'
 
 const DOCUMENT_REPLACEMENT_TOKEN = { token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`) }
-CodeMirror.defineSimpleMode("formatTemplate", {
-    start: [
+const ICON_REPLACEMENT_TOKEN = { token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`) }
+const COLOR_REPLACEMENT_TOKEN = { token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`) }
+const CONTEXT_START = (context: keyof typeof syntax, nArgs = 0, tagname: string = context.toString()) => {
+    const args = "(?:\\s+?(.+?))?".repeat(nArgs)
+    const regex = RegExp(`\\{#${tagname}${args}\\}`)
+    return {
+        token: `${context}-start`,
+        regex: regex,
+        next: context,
+    }
+}
+const CONTEXT_END = (context: string, next: keyof typeof syntax, tagname: string = context.toString()) => {
+    const regex = RegExp(`\\{/${tagname}\\}`)
+    return {
+        token: `${context}-end`,
+        regex: regex,
+        next: next,
+    }
+}
+const syntax: {[key: string]: unknown[]} = {
+    'start': [
         DOCUMENT_REPLACEMENT_TOKEN,
-        { token: "icon-start", regex: /\{#icon(\s+?.+?)?\}/, next: 'icon' },
-        { token: "color-start", regex: /\{#color(\s+?.+?)?\}/, next: 'color' },
+        CONTEXT_START('icon', 1),
+        CONTEXT_START('color', 1)
     ],
-    icon: [
+    'icon': [
+        CONTEXT_END('icon', 'start'),
         DOCUMENT_REPLACEMENT_TOKEN,
-        { token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`) },
-        { token: "icon-end", regex: /\{\/icon\}/, next: 'start' },
+        ICON_REPLACEMENT_TOKEN,
     ],
-    color: [
+    'color': [
+        CONTEXT_END('color', 'start'),
         DOCUMENT_REPLACEMENT_TOKEN,
-        { token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`) },
-        { token: "color-end", regex: /\{\/color\}/, next: 'start' },
+        COLOR_REPLACEMENT_TOKEN,
+        CONTEXT_START('color-nested', 1, 'nested'),
     ],
-
-});
+    'color-nested': [
+        CONTEXT_END('color-nested', 'color', 'nested'),
+        CONTEXT_START('color-nested-child', 0, 'child'),
+        CONTEXT_START('color-nested-no-child', 0, 'nochild'),
+    ],
+    'color-nested-child': [
+        DOCUMENT_REPLACEMENT_TOKEN,
+        COLOR_REPLACEMENT_TOKEN,
+        { token: "color-recuse", regex: /RECURSE/ },
+        CONTEXT_END('color-nested-child', 'color-nested', 'child'),
+    ],
+    'color-nested-no-child': [
+        DOCUMENT_REPLACEMENT_TOKEN,
+        COLOR_REPLACEMENT_TOKEN,
+        CONTEXT_END('color-nested-no-child', 'color-nested', 'nochild'),
+    ]
+}
+CodeMirror.defineSimpleMode("formatTemplate", syntax);
 
 interface Props {
     defaultValue?: string,

@@ -166,27 +166,25 @@ a {
 .cm-document-replacement-token {
   color: var(--blue);
 }
-.cm-icon-start {
-  color: var(--purple);
-}
-.cm-icon-end {
-  color: var(--purple);
-}
+
+.cm-icon-start,
+.cm-icon-end,
 .cm-icon-replacement-token {
   color: var(--purple);
 }
-.cm-color-start {
-  color: var(--green);
-}
-.cm-color-end {
-  color: var(--green);
-}
+
+.cm-color-start,
+.cm-color-end,
+.cm-color-nested-start,
+.cm-color-nested-end,
+.cm-color-nested-child-start,
+.cm-color-nested-child-end,
+.cm-color-nested-no-child-start,
+.cm-color-nested-no-child-end,
 .cm-color-replacement-token {
   color: var(--green);
 }
-.cm-control-statement {
-  color: var(--purple);
-}
+
 .TemplateEditor .CodeMirror-cursor {
   border-color: var(--grey);
 }
