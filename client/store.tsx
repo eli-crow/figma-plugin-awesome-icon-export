@@ -1,55 +1,55 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import copyToClipboard from "copy-to-clipboard";
 import getFileInfo from "./generate";
-import defaultFormats from './formats'
+import { defaultFormats } from './format'
 import { useState, createContext } from "react";
 import { ExportData, PluginSettings, Format, ClientCommand, ServerResponse, ServerResponseMessage, ClientCommandMessage } from "../types";
 import { v4 as uuid } from 'uuid'
 
 interface PluginStore {
-    readonly settings: PluginSettings;
-    readonly data: ExportData;
-    readonly isLoaded: boolean;
-    readonly patchSettings: (patch: Partial<PluginSettings>) => void;
-    readonly activeFormat: Format;
-    readonly editingFormat: Format;
-    readonly formats: ReadonlyArray<Format>;
-    readonly defaultFormats: ReadonlyArray<Format>;
-    readonly customFormats: ReadonlyArray<Format>;
-    readonly editUpdateFormat: (patch: Partial<Format>) => void;
-    readonly editNewFormat: () => void;
-    readonly editFormat: (id: string) => void;
-    readonly editDeleteFormat: () => void;
-    readonly editSaveFormat: () => void;
-    readonly editCancel: () => void;
-    readonly download: () => void;
-    readonly copy: () => void;
-    readonly requestData: () => void,
-    readonly resize: (width: number, height: number) => void;
+  readonly settings: PluginSettings;
+  readonly data: ExportData;
+  readonly isLoaded: boolean;
+  readonly patchSettings: (patch: Partial<PluginSettings>) => void;
+  readonly activeFormat: Format;
+  readonly editingFormat: Format;
+  readonly formats: ReadonlyArray<Format>;
+  readonly defaultFormats: ReadonlyArray<Format>;
+  readonly customFormats: ReadonlyArray<Format>;
+  readonly editUpdateFormat: (patch: Partial<Format>) => void;
+  readonly editNewFormat: () => void;
+  readonly editFormat: (id: string) => void;
+  readonly editDeleteFormat: () => void;
+  readonly editSaveFormat: () => void;
+  readonly editCancel: () => void;
+  readonly download: () => void;
+  readonly copy: () => void;
+  readonly requestData: () => void,
+  readonly resize: (width: number, height: number) => void;
 }
 
 const PluginContext = createContext<PluginStore>({
-    settings: null,
-    data: null,
-    isLoaded: false,
-    patchSettings: () => {},
-    activeFormat: null,
-    formats: [],
-    defaultFormats: [],
-    customFormats: [],
+  settings: null,
+  data: null,
+  isLoaded: false,
+  patchSettings: () => { },
+  activeFormat: null,
+  formats: [],
+  defaultFormats: [],
+  customFormats: [],
 
-    editingFormat: null,
-    editUpdateFormat: () => {},
-    editNewFormat: () => {},
-    editFormat: () => {},
-    editDeleteFormat: () => {},
-    editCancel: () => {},
-    editSaveFormat: () => {},
+  editingFormat: null,
+  editUpdateFormat: () => { },
+  editNewFormat: () => { },
+  editFormat: () => { },
+  editDeleteFormat: () => { },
+  editCancel: () => { },
+  editSaveFormat: () => { },
 
-    download: () => {},
-    copy: () => {},
-    requestData: () => {},
-    resize: () => {}
+  download: () => { },
+  copy: () => { },
+  requestData: () => { },
+  resize: () => { }
 })
 
 function command(command: ClientCommand, payload?: unknown) {
@@ -63,35 +63,35 @@ function command(command: ClientCommand, payload?: unknown) {
 }
 
 function useStore(): PluginStore {
-  
+
   const [settings, setSettings] = useState<PluginSettings>(null)
   const [data, setData] = useState<ExportData>(null)
   const [editingFormat, setEditingFormat] = useState<Format>(null)
-  
-  const formats = settings 
+
+  const formats = settings
     ? [...defaultFormats, ...settings.customFormats]
     : defaultFormats
   const activeFormat = formats.find(f => f.id === settings?.selectedFormatId) ?? formats[0]
   const customFormats = settings?.customFormats;
   const isLoaded = settings !== null;
-  
+
   function editUpdateFormat(patch: Partial<Format>) {
-    const {id, ...newFormat} = patch
-    setEditingFormat(oldFormat => ({...oldFormat, ...newFormat}))
+    const { id, ...newFormat } = patch
+    setEditingFormat(oldFormat => ({ ...oldFormat, ...newFormat }))
   }
-  
+
   function getFormat(id: string) {
     return formats.find(f => f.id === id)
   }
-  
-  function patchSettings (patch: Partial<PluginSettings>) {
-    const newSettings = {...settings, ...patch}
+
+  function patchSettings(patch: Partial<PluginSettings>) {
+    const newSettings = { ...settings, ...patch }
     setSettings(newSettings)
     command(ClientCommand.UPDATE_SETTINGS, newSettings)
   }
 
   onmessage = (e) => {
-    const {response: type, payload} = e.data.pluginMessage as ServerResponseMessage;
+    const { response: type, payload } = e.data.pluginMessage as ServerResponseMessage;
 
     switch (type) {
       case ServerResponse.INIT: {
@@ -121,7 +121,7 @@ function useStore(): PluginStore {
 
       case ServerResponse.COPY_SUCCESS: {
         const data = payload as ExportData
-        const {fileText} = getFileInfo(data, editingFormat ?? activeFormat)
+        const { fileText } = getFileInfo(data, editingFormat ?? activeFormat)
         copyToClipboard(fileText)
         command(ClientCommand.NOTIFY, "📋 Copied to clipboard!")
         break
@@ -138,9 +138,9 @@ function useStore(): PluginStore {
     defaultFormats,
     customFormats,
     activeFormat,
-    
+
     editingFormat,
-    editUpdateFormat, 
+    editUpdateFormat,
     editNewFormat() {
       setEditingFormat({
         id: uuid(),
@@ -151,7 +151,7 @@ function useStore(): PluginStore {
       })
     },
     editFormat(id) {
-      setEditingFormat({...getFormat(id)})
+      setEditingFormat({ ...getFormat(id) })
     },
     editSaveFormat() {
       const formats = [...settings.customFormats]
@@ -184,7 +184,7 @@ function useStore(): PluginStore {
     download() { command(ClientCommand.DOWNLOAD) },
     copy() { command(ClientCommand.COPY) },
     requestData() { command(ClientCommand.PREVIEW) },
-    resize(width, height) { command(ClientCommand.RESIZE, {width, height})}
+    resize(width, height) { command(ClientCommand.RESIZE, { width, height }) }
   }
 }
 

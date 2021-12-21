@@ -1,6 +1,6 @@
-import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../types";
+import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../../types";
 
-export default {
+export const simpleJS = {
     id: "$2",
     name: "Simple JavaScript",
     extension: "js",

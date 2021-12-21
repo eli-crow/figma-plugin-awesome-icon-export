@@ -64,4 +64,6 @@ const syntax: Record<SyntaxContext, unknown[]> = {
     ]
 }
 
-export default syntax
+export {
+    syntax
+}

@@ -1,6 +1,6 @@
-import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../types";
+import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../../types";
 
-export default {
+export const svgInJSX = {
     id: "$4",
     name: "SVG in JSX",
     extension: "jsx",

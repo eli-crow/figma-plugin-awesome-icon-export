@@ -1,6 +1,6 @@
-import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../types";
+import { CaseTransformKey, DocumentReplacementToken, Format, IconReplacementToken } from "../../../types";
 
-export default {
+export const fontAwesomeJSLibrary = {
     id: "$1",
     name: "Font Awesome JS Library",
     extension: "js",

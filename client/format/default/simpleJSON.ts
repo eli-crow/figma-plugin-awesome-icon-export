@@ -1,6 +1,6 @@
-import { CaseTransformKey, Format, IconReplacementToken } from "../../types";
+import { CaseTransformKey, Format, IconReplacementToken } from "../../../types";
 
-export default {
+export const simpleJSON = {
     id: "$3",
     name: "Simple JSON",
     extension: "json",

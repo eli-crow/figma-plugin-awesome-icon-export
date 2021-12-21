@@ -139,7 +139,6 @@ function getIconData(): IconData[] {
   getIconFrames().forEach(frame => {
 
     // TODO: support nested frames
-    // TODO: support variants
     // TODO: remove support for instances
 
     const descendents = frame.findAll(n =>

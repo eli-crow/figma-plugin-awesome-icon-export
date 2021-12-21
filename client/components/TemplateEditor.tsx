@@ -2,7 +2,7 @@ import React, { ReactElement, useEffect, useRef } from 'react'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/mode/simple'
 import 'codemirror/lib/codemirror.css'
-import syntax from '../formats/syntax'
+import { syntax } from '../format'
 
 CodeMirror.defineSimpleMode("formatTemplate", syntax);
 
