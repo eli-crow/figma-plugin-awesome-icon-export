@@ -6,6 +6,11 @@ export interface ColorData {
     a: number;
 }
 
+export interface Folder<TData> {
+    name: string;
+    children: (TData | Folder<TData>)[]
+}
+
 export interface IconData {
     name: string;
     width: number;
@@ -94,6 +99,8 @@ export enum Context {
     Icon = 'icon',
 }
 
+export type ReplacementDictionaryGettter<TItem> = (item: TItem, index: number, isChild: boolean) => ReplacementDictionary
+
 export enum DocumentReplacementToken {
     DOC_NAME = "DOC_NAME",
     PLUGIN_NAME = "PLUGIN_NAME",
@@ -112,8 +119,15 @@ export enum IconReplacementToken {
 }
 export type IconReplacementDictionary = Map<IconReplacementToken, string>
 
+export enum FolderReplacementToken {
+    NAME = "NAME",
+    GRANDCHILD = "{#grandchild}"
+}
+export type FolderReplacementDictionary = Map<FolderReplacementToken, string>
+
 export enum ColorReplacementToken {
     NAME = "NAME",
+    FULL_NAME = "FULL_NAME",
     R_01 = "R_01",
     R_256 = "R_256",
     R_HEX = "R_HEX",
@@ -132,8 +146,8 @@ export enum ColorReplacementToken {
 }
 export type ColorReplacementDictionary = Map<ColorReplacementToken, string>
 
-export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken
-export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary | ColorReplacementDictionary
+export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken | FolderReplacementToken
+export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary | ColorReplacementDictionary | FolderReplacementDictionary
 
 export enum CaseTransformKey {
     CAMEL = "CAMEL",

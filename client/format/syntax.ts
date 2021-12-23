@@ -11,7 +11,9 @@ type SyntaxContext =
 const DOC_T = { token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`) }
 const ICON_T = { token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`) }
 const COLOR_T = { token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`) }
-const CONTEXT_START = (context: SyntaxContext, { args = 0, tag = context.toString() } = {}) => {
+const GRANDCHILDREN = { token: "color-grandchild", regex: /\{#grandchild\}/ }
+
+const CONTEXT_START = (context: SyntaxContext | string, { args = 0, tag = context.toString() } = {}) => {
     const argsPattern = "(?:\\s+?(.+?))?".repeat(args)
     const regex = RegExp(`\\{#${tag}${argsPattern}\\}`)
     return {
@@ -20,13 +22,18 @@ const CONTEXT_START = (context: SyntaxContext, { args = 0, tag = context.toStrin
         next: context,
     }
 }
-const CONTEXT_END = (context: SyntaxContext, next: SyntaxContext, { tag = context.toString() } = {}) => {
+const CONTEXT_END = (context: SyntaxContext | string, next: SyntaxContext, { tag = context.toString() } = {}) => {
     const regex = RegExp(`\\{/${tag}\\}`)
     return {
         token: `${context}-end`,
         regex: regex,
         next: next,
     }
+}
+function getContextRegex(context: SyntaxContext | string, { args = 0, tag = context.toString(), from = 'start' as SyntaxContext } = {}) {
+    const start = CONTEXT_START(context, { args, tag }).regex.source
+    const end = CONTEXT_END(context, from, { tag }).regex.source
+    return new RegExp(`${start}([\\s\\S]*?)${end}`, 'gm')
 }
 
 const syntax: Record<SyntaxContext, unknown[]> = {
@@ -51,8 +58,7 @@ const syntax: Record<SyntaxContext, unknown[]> = {
     'color-child': [
         CONTEXT_END('color-child', 'color', { tag: 'child' }),
         DOC_T,
-        COLOR_T,
-        { token: "color-grandchild", regex: /\{#grandchild\}/ },
+        GRANDCHILDREN,
     ],
     'color-no-child': [
         CONTEXT_END('color-no-child', 'color', { tag: 'nochild' }),
@@ -67,5 +73,9 @@ const syntax: Record<SyntaxContext, unknown[]> = {
 }
 
 export {
-    syntax
+    syntax,
+    CONTEXT_START,
+    CONTEXT_END,
+    getContextRegex,
+    GRANDCHILDREN
 }

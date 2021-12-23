@@ -1,12 +1,15 @@
 import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCase } from "lodash-es";
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
-import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary } from "../types";
+import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary, ReplacementDictionaryGettter, Folder, FolderReplacementDictionary, FolderReplacementToken } from "../types";
+import { getContextRegex } from "./format/syntax";
 
 interface Export {
     fileName: string,
     fileText: string,
 }
+
+// TODO: flat, error handling, indentation problem with {grandchild} tag.
 
 const CASE_TRANSFORMS: CaseTransformDictionary = {
     CAMEL: camelCase,
@@ -48,7 +51,11 @@ function getDocumentReplacements(data: ExportData): DocumentReplacementDictionar
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getColorStyleReplacements(color: ColorData, _index: number): ColorReplacementDictionary {
+function getColorStyleReplacements(color: ColorData, _index: number, isChild = false): ColorReplacementDictionary {
+    // TODO: full name vs contextual name
+    const FULL_NAME = color.name
+    const NAME = isChild ? color.name : color.name
+
     const R_01 = color.r
     const R_256 = Math.round(R_01 * 255)
     const R_HEX = R_256.toString(16).padStart(2, '0')
@@ -77,7 +84,8 @@ function getColorStyleReplacements(color: ColorData, _index: number): ColorRepla
     m.set(ColorReplacementToken.RGBA_HEX, RGBA_HEX)
     m.set(ColorReplacementToken.RGB_HEX, RGB_HEX)
     m.set(ColorReplacementToken.ARGB_HEX, ARGB_HEX)
-    m.set(ColorReplacementToken.NAME, color.name)
+    m.set(ColorReplacementToken.FULL_NAME, FULL_NAME)
+    m.set(ColorReplacementToken.NAME, NAME)
     m.set(ColorReplacementToken.R_01, R_01.toString())
     m.set(ColorReplacementToken.R_256, R_256.toString())
     m.set(ColorReplacementToken.R_HEX, R_HEX)
@@ -100,6 +108,7 @@ function getIconReplacements(icon: IconData, index: number): IconReplacementDict
 
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
     m.set(IconReplacementToken.NAME, NAME)
+    // TODO: FULL_NAME
     m.set(IconReplacementToken.WIDTH, icon.width.toString())
     m.set(IconReplacementToken.HEIGHT, icon.height.toString())
     m.set(IconReplacementToken.LEFT, icon.offsetX.toString())
@@ -126,26 +135,21 @@ function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary)
     return toReplace
 }
 
-function replaceDictionaryIterator<TItem>(
-    toReplace: string,
-    context: Context,
-    items: TItem[],
-    dictionaryFunc: (item: TItem, index: number) => ReplacementDictionary,
-): string {
-    const regex = new RegExp(`\\{#${context}(?:\\s+?(.+?))?\\}([\\s\\S]+?){\\/${context}\\}`, 'gm')
+function replaceDictionaryIterator<TItem>(toReplace: string, contextTag: Context | string, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+    const regex = getContextRegex(contextTag, { args: 1 })
 
     let match
     while ((match = regex.exec(toReplace))) {
         const wholeMatch = match[0]
         const separator = match[1]
-        const iconTemplate = match[2]
+        const template = match[2]
 
         const lines = []
 
         items.forEach((item, i, a) => {
-            let iconLine = iconTemplate
+            let iconLine = template
 
-            iconLine = replaceDictionary(iconLine, dictionaryFunc(item, i))
+            iconLine = replaceDictionary(iconLine, dictionaryFunc(item, i, false))
 
             if (separator && i !== a.length - 1) {
                 iconLine += separator
@@ -156,7 +160,133 @@ function replaceDictionaryIterator<TItem>(
 
         const start = match.index
         const end = start + wholeMatch.length
+        toReplace = toReplace.slice(0, start) + lines.join('\n') + toReplace.slice(end)
+    }
 
+    return toReplace
+}
+
+function replaceDictionaryFolder<TItem>(folderOrItem: TItem | Folder<TItem>, parentIndex: number, folderTemplate: string, itemTemplate: string, separator: string, dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+    const recurse = (folderOrItem: Folder<TItem> | TItem, childIndex = parentIndex) => {
+        if (isFolder(folderOrItem)) {
+            const folder = folderOrItem as Folder<TItem>
+
+            const grandchildRegex = /\{#grandchild\}/
+            const grandChildMatch = grandchildRegex.exec(folderTemplate)
+            if (!grandChildMatch) throw new Error(`"{#child}" templates must contain a "#{grandchild} tag"`)
+            const GRANDCHILD = Array.isArray(folder.children)
+                ? folder.children.map((item, i, a) => {
+                    const line = recurse(item, i)
+                    const sep = separator && i !== a.length - 1 ? separator : ''
+                    return `${line}${sep}`
+                }).join('\n')
+                : recurse(folder.children, childIndex)
+
+            const d: FolderReplacementDictionary = new Map()
+            d.set(FolderReplacementToken.NAME, folder.name.trim())
+            d.set(FolderReplacementToken.GRANDCHILD, GRANDCHILD)
+
+            return replaceDictionary(folderTemplate, d)
+        } else {
+            const item = folderOrItem as TItem
+
+            return replaceDictionary(itemTemplate, dictionaryFunc(item, parentIndex, true))
+        }
+    }
+
+    return recurse(folderOrItem)
+}
+
+function unnest<TItem extends { name: string }>(items: TItem[]): (TItem | Folder<TItem>)[] {
+    const parsed = items.map(({ name, ...rest }) => {
+        const path = name.trim().split(/\b\s*\/+\s*\b/g)
+        const item = { ...rest, name: path[path.length - 1] } as TItem
+        return { path, item }
+    })
+
+    const result: (TItem | Folder<TItem>)[] = []
+
+    parsed.forEach(({ path, item }) => {
+        if (path.length === 1) {
+            result.push(item)
+        } else {
+            const root = result.find(item => isFolder(item) && item.name === path[0]) as Folder<TItem>
+
+            let parent: Folder<TItem>
+            if (root) {
+                parent = root
+            } else {
+                const newFolder: Folder<TItem> = { name: path[0], children: [] }
+                result.push(newFolder)
+                parent = newFolder
+            }
+
+            // create intermediate folders
+            for (let i = 1; i < path.length - 1; i++) {
+                const part = path[i]
+                const existingFolder = parent.children.find(i => isFolder(i) && i.name === part) as Folder<TItem>
+                if (existingFolder) {
+                    parent = existingFolder
+                } else {
+                    const newFolder: Folder<TItem> = { name: part, children: [] }
+                    parent.children.push(newFolder)
+                    parent = newFolder
+                }
+            }
+
+            parent.children.push(item)
+        }
+    })
+
+    return result
+}
+
+function isFolder<TItem>(item: Folder<TItem> | TItem) {
+    return (item as Folder<TItem>).children?.length > 0
+}
+
+function replaceDictionaryIteratorNested<TItem extends { name: string }>(toReplace: string, context: Context, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+    const contextRegex = getContextRegex(context, { args: 1 })
+
+    const itemsNested = unnest(items)
+
+    let match
+    while ((match = contextRegex.exec(toReplace))) {
+        const contextWholeMatch = match[0]
+        const contextSeparator = match[1]
+        const contextTemplate = match[2]
+
+        // consider renaming this to "folder"
+        const childRegex = getContextRegex('child', { args: 1 })
+        const childMatch = childRegex.exec(contextTemplate)
+        const childSeparator = childMatch?.[1]
+        const childTemplate = childMatch?.[2]
+
+        const nochildRegex = getContextRegex('nochild')
+        const nochildMatch = nochildRegex.exec(contextTemplate)
+        const nochildTemplate = nochildMatch?.[1]
+
+        const flatRegex = getContextRegex('flat')
+        const flatMatch = flatRegex.exec(contextTemplate)
+        const flatTemplate = flatMatch?.[1]
+
+        if (childMatch && nochildMatch && flatMatch) throw new Error(`Cannot use "{#child}" or "{#nochild}" tags with "{#flat}" tag`)
+        if (!(childMatch && nochildMatch)) throw new Error(`Both "{#child}" and "{#nochild}" are needed for nested colors. Otherwise, use the "flat"`)
+
+        const lines = flatMatch
+            ? items.map((item, i, a) => {
+                const line = replaceDictionary(flatTemplate, dictionaryFunc(item, i, false))
+                const sep = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
+                return `${line}${sep}`
+            })
+            : itemsNested.map((itemOrFolder, i, a) => {
+                const line = replaceDictionaryFolder(itemOrFolder, i, childTemplate, nochildTemplate, childSeparator, dictionaryFunc)
+                const sep = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
+                return `${line}${sep}`
+            })
+
+        const start = match.index
+        const end = start + contextWholeMatch.length
         toReplace = toReplace.slice(0, start) + lines.join('\n') + toReplace.slice(end)
     }
 
@@ -168,7 +298,7 @@ function parseTemplate(template: string, data: ExportData): string {
 
     fileText = replaceDictionary(fileText, getDocumentReplacements(data))
     fileText = replaceDictionaryIterator(fileText, Context.Icon, data.icons, getIconReplacements)
-    fileText = replaceDictionaryIterator(fileText, Context.Color, data.colors, getColorStyleReplacements)
+    fileText = replaceDictionaryIteratorNested(fileText, Context.Color, data.colors, getColorStyleReplacements)
 
     return fileText
 }
