@@ -1,17 +1,19 @@
-import { IconReplacementToken, DocumentReplacementToken, ColorReplacementToken } from '../../types'
+import { IconReplacementToken, DocumentReplacementToken, ColorReplacementToken, FolderReplacementToken } from '../../types'
 
 type SyntaxContext =
     'start' |
     'icon' |
     'color' |
-    'color-flat' |
     'color-child' |
-    'color-no-child'
+    'color-flat' |
+    'color-folder' |
+    'color-style'
 
 const DOC_T = { token: "document-replacement-token", regex: new RegExp(`(?:${Object.keys(DocumentReplacementToken).join('|')})`) }
+const FOLDER_T = { token: "folder-replacement-token", regex: new RegExp(`(?:${Object.keys(FolderReplacementToken).join('|')})`) }
 const ICON_T = { token: "icon-replacement-token", regex: new RegExp(`(?:${Object.keys(IconReplacementToken).join('|')})`) }
 const COLOR_T = { token: "color-replacement-token", regex: new RegExp(`(?:${Object.keys(ColorReplacementToken).join('|')})`) }
-const GRANDCHILDREN = { token: "color-grandchild", regex: /\{#grandchild\}/ }
+const RECURSE = { token: "color-recurse", regex: /\{#recurse\}/ }
 
 const CONTEXT_START = (context: SyntaxContext | string, { args = 0, tag = context.toString() } = {}) => {
     const argsPattern = "(?:\\s+?(.+?))?".repeat(args)
@@ -51,17 +53,23 @@ const syntax: Record<SyntaxContext, unknown[]> = {
         CONTEXT_END('color', 'start'),
         DOC_T,
         COLOR_T,
-        CONTEXT_START('color-child', { args: 1, tag: 'child' }),
-        CONTEXT_START('color-no-child', { tag: 'nochild' }),
+        CONTEXT_START('color-folder', { tag: 'folder' }),
+        CONTEXT_START('color-style', { tag: 'style' }),
         CONTEXT_START('color-flat', { tag: 'flat' }),
     ],
-    'color-child': [
-        CONTEXT_END('color-child', 'color', { tag: 'child' }),
+    'color-folder': [
+        CONTEXT_END('color-folder', 'color', { tag: 'folder' }),
         DOC_T,
-        GRANDCHILDREN,
+        FOLDER_T,
+        CONTEXT_START('color-child', { args: 1, tag: 'child' })
     ],
-    'color-no-child': [
-        CONTEXT_END('color-no-child', 'color', { tag: 'nochild' }),
+    'color-child': [
+        CONTEXT_END('color-child', 'color-folder', { tag: 'child' }),
+        FOLDER_T,
+        RECURSE,
+    ],
+    'color-style': [
+        CONTEXT_END('color-style', 'color', { tag: 'style' }),
         DOC_T,
         COLOR_T,
     ],
@@ -77,5 +85,5 @@ export {
     CONTEXT_START,
     CONTEXT_END,
     getContextRegex,
-    GRANDCHILDREN
+    RECURSE
 }

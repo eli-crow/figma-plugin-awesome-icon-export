@@ -120,10 +120,14 @@ export enum IconReplacementToken {
 export type IconReplacementDictionary = Map<IconReplacementToken, string>
 
 export enum FolderReplacementToken {
-    NAME = "NAME",
-    GRANDCHILD = "{#grandchild}"
+    NAME = "NAME"
 }
 export type FolderReplacementDictionary = Map<FolderReplacementToken, string>
+
+export enum FolderChildReplacementToken {
+    NAME = "NAME"
+}
+export type FolderChildReplacementDictionary = Map<FolderChildReplacementToken, string>
 
 export enum ColorReplacementToken {
     NAME = "NAME",
@@ -146,8 +150,8 @@ export enum ColorReplacementToken {
 }
 export type ColorReplacementDictionary = Map<ColorReplacementToken, string>
 
-export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken | FolderReplacementToken
-export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary | ColorReplacementDictionary | FolderReplacementDictionary
+export type ReplacementToken = DocumentReplacementToken | IconReplacementToken | ColorReplacementToken | FolderReplacementToken | FolderChildReplacementToken
+export type ReplacementDictionary = DocumentReplacementDictionary | IconReplacementDictionary | ColorReplacementDictionary | FolderReplacementDictionary | FolderChildReplacementDictionary
 
 export enum CaseTransformKey {
     CAMEL = "CAMEL",

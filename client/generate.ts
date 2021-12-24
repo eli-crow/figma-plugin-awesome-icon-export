@@ -2,14 +2,14 @@ import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCas
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
 import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary, ReplacementDictionaryGettter, Folder, FolderReplacementDictionary, FolderReplacementToken } from "../types";
-import { getContextRegex } from "./format/syntax";
+import { getContextRegex, RECURSE } from "./format/syntax";
 
 interface Export {
     fileName: string,
     fileText: string,
 }
 
-// TODO: flat, error handling, indentation problem with {grandchild} tag.
+// TODO: flat, error handling
 
 const CASE_TRANSFORMS: CaseTransformDictionary = {
     CAMEL: camelCase,
@@ -135,7 +135,7 @@ function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary)
     return toReplace
 }
 
-function replaceDictionaryIterator<TItem>(toReplace: string, contextTag: Context | string, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+function replaceDictionaryFlat<TItem>(toReplace: string, contextTag: Context | string, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
     const regex = getContextRegex(contextTag, { args: 1 })
 
     let match
@@ -166,31 +166,42 @@ function replaceDictionaryIterator<TItem>(toReplace: string, contextTag: Context
     return toReplace
 }
 
-function replaceDictionaryFolder<TItem>(folderOrItem: TItem | Folder<TItem>, parentIndex: number, folderTemplate: string, itemTemplate: string, separator: string, dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+function replaceDictionaryFolder<TItem>(folderOrItem: TItem | Folder<TItem>, parentIndex: number, folderTemplate: string, styleTemplate: string, dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
     const recurse = (folderOrItem: Folder<TItem> | TItem, childIndex = parentIndex) => {
         if (isFolder(folderOrItem)) {
+            let result = folderTemplate
             const folder = folderOrItem as Folder<TItem>
 
-            const grandchildRegex = /\{#grandchild\}/
-            const grandChildMatch = grandchildRegex.exec(folderTemplate)
-            if (!grandChildMatch) throw new Error(`"{#child}" templates must contain a "#{grandchild} tag"`)
-            const GRANDCHILD = Array.isArray(folder.children)
-                ? folder.children.map((item, i, a) => {
-                    const line = recurse(item, i)
-                    const sep = separator && i !== a.length - 1 ? separator : ''
-                    return `${line}${sep}`
-                }).join('\n')
-                : recurse(folder.children, childIndex)
+            // TODO, get child context, replace match start and end, and recurse where you find the RECURSE token.
+            const childRegex = getContextRegex('child', { args: 1 })
+            const childMatch = childRegex.exec(folderTemplate)
+            const childWholeMatch = childMatch?.[0]
+            const childSeparator = childMatch?.[1]
+            const childTemplate = childMatch?.[2]
+
+            if (!childMatch) throw new Error(`"{#folder}" templates must contain a "#{child} tag"`)
+
+            const childText = folder.children.map((item, i, a) => {
+                const childReplacement = recurse(item, i)
+                const line = childTemplate.replace(new RegExp(RECURSE.regex), childReplacement)
+                const separator = childSeparator && i !== a.length - 1 ? childSeparator : ''
+                return `${line}${separator}`
+            }).join('\n')
+
+            // replace start and end of child matchmatch
+            const start = childMatch.index
+            const end = start + childWholeMatch.length
+            result = result.slice(0, start) + childText + result.slice(end)
 
             const d: FolderReplacementDictionary = new Map()
             d.set(FolderReplacementToken.NAME, folder.name.trim())
-            d.set(FolderReplacementToken.GRANDCHILD, GRANDCHILD)
+            result = replaceDictionary(result, d)
 
-            return replaceDictionary(folderTemplate, d)
+            return result
         } else {
             const item = folderOrItem as TItem
 
-            return replaceDictionary(itemTemplate, dictionaryFunc(item, parentIndex, true))
+            return replaceDictionary(styleTemplate, dictionaryFunc(item, childIndex, true))
         }
     }
 
@@ -245,7 +256,7 @@ function isFolder<TItem>(item: Folder<TItem> | TItem) {
     return (item as Folder<TItem>).children?.length > 0
 }
 
-function replaceDictionaryIteratorNested<TItem extends { name: string }>(toReplace: string, context: Context, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
+function replaceDictionaryFolders<TItem extends { name: string }>(toReplace: string, context: Context, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
     const contextRegex = getContextRegex(context, { args: 1 })
 
     const itemsNested = unnest(items)
@@ -256,33 +267,31 @@ function replaceDictionaryIteratorNested<TItem extends { name: string }>(toRepla
         const contextSeparator = match[1]
         const contextTemplate = match[2]
 
-        // consider renaming this to "folder"
-        const childRegex = getContextRegex('child', { args: 1 })
-        const childMatch = childRegex.exec(contextTemplate)
-        const childSeparator = childMatch?.[1]
-        const childTemplate = childMatch?.[2]
+        const folderRegex = getContextRegex('folder')
+        const folderMatch = folderRegex.exec(contextTemplate)
+        const folderTemplate = folderMatch?.[1]
 
-        const nochildRegex = getContextRegex('nochild')
-        const nochildMatch = nochildRegex.exec(contextTemplate)
-        const nochildTemplate = nochildMatch?.[1]
+        const styleRegex = getContextRegex('style')
+        const styleMatch = styleRegex.exec(contextTemplate)
+        const styleTemplate = styleMatch?.[1]
 
         const flatRegex = getContextRegex('flat')
         const flatMatch = flatRegex.exec(contextTemplate)
         const flatTemplate = flatMatch?.[1]
 
-        if (childMatch && nochildMatch && flatMatch) throw new Error(`Cannot use "{#child}" or "{#nochild}" tags with "{#flat}" tag`)
-        if (!(childMatch && nochildMatch)) throw new Error(`Both "{#child}" and "{#nochild}" are needed for nested colors. Otherwise, use the "flat"`)
+        if (folderMatch && styleMatch && flatMatch) throw new Error(`Cannot use "{#folder}" or "{#style}" tags with "{#flat}" tag`)
+        if (!(folderMatch && styleMatch)) throw new Error(`Both "{#folder}" and "{#style}" are needed for nested colors. Otherwise, use the "{#flat}" tag`)
 
         const lines = flatMatch
             ? items.map((item, i, a) => {
                 const line = replaceDictionary(flatTemplate, dictionaryFunc(item, i, false))
-                const sep = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
-                return `${line}${sep}`
+                const separator = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
+                return `${line}${separator}`
             })
             : itemsNested.map((itemOrFolder, i, a) => {
-                const line = replaceDictionaryFolder(itemOrFolder, i, childTemplate, nochildTemplate, childSeparator, dictionaryFunc)
-                const sep = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
-                return `${line}${sep}`
+                const line = replaceDictionaryFolder(itemOrFolder, i, folderTemplate, styleTemplate, dictionaryFunc)
+                const separator = contextSeparator && i !== a.length - 1 ? contextSeparator : ''
+                return `${line}${separator}`
             })
 
         const start = match.index
@@ -297,8 +306,8 @@ function parseTemplate(template: string, data: ExportData): string {
     let fileText = template
 
     fileText = replaceDictionary(fileText, getDocumentReplacements(data))
-    fileText = replaceDictionaryIterator(fileText, Context.Icon, data.icons, getIconReplacements)
-    fileText = replaceDictionaryIteratorNested(fileText, Context.Color, data.colors, getColorStyleReplacements)
+    fileText = replaceDictionaryFlat(fileText, Context.Icon, data.icons, getIconReplacements)
+    fileText = replaceDictionaryFolders(fileText, Context.Color, data.colors, getColorStyleReplacements)
 
     return fileText
 }
