@@ -9,8 +9,6 @@ interface Export {
     fileText: string,
 }
 
-// TODO: flat, error handling
-
 const CASE_TRANSFORMS: CaseTransformDictionary = {
     CAMEL: camelCase,
     PASCAL: t => upperFirst(camelCase(t)),
@@ -50,10 +48,10 @@ function getDocumentReplacements(data: ExportData): DocumentReplacementDictionar
     return m
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- expecting a certain shape
 function getColorStyleReplacements(color: ColorData, _index: number, isChild = false): ColorReplacementDictionary {
-    // TODO: full name vs contextual name
     const FULL_NAME = color.name
+    // TODO: full name vs contextual name
     const NAME = isChild ? color.name : color.name
 
     const R_01 = color.r
@@ -138,7 +136,7 @@ function replaceDictionary(toReplace: string, dictionary: ReplacementDictionary)
 function replaceDictionaryFlat<TItem>(toReplace: string, contextTag: Context | string, items: TItem[], dictionaryFunc: ReplacementDictionaryGettter<TItem>): string {
     const regex = getContextRegex(contextTag, { args: 1 })
 
-    let match
+    let match: RegExpExecArray
     while ((match = regex.exec(toReplace))) {
         const wholeMatch = match[0]
         const separator = match[1]
@@ -280,7 +278,7 @@ function replaceDictionaryFolders<TItem extends { name: string }>(toReplace: str
         const flatTemplate = flatMatch?.[1]
 
         if (folderMatch && styleMatch && flatMatch) throw new Error(`Cannot use "{#folder}" or "{#style}" tags with "{#flat}" tag`)
-        if (!(folderMatch && styleMatch)) throw new Error(`Both "{#folder}" and "{#style}" are needed for nested colors. Otherwise, use the "{#flat}" tag`)
+        if (!flatMatch && !(folderMatch && styleMatch)) throw new Error(`Both "{#folder}" and "{#style}" are needed for nested colors. Otherwise, use the "{#flat}" tag`)
 
         const lines = flatMatch
             ? items.map((item, i, a) => {
