@@ -1,8 +1,11 @@
 import { camelCase, snakeCase, kebabCase, toUpper, toLower, upperFirst, startCase } from "lodash-es";
 import paper from "paper/dist/paper-core";
 import manifset from "../manifest.json";
-import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary, ReplacementDictionaryGettter, Folder, FolderReplacementDictionary, FolderReplacementToken } from "../types";
+import { ExportData, Format as ExportFormat, IconReplacementDictionary, ColorReplacementDictionary, ColorData, DocumentReplacementDictionary, IconData, DocumentReplacementToken, ColorReplacementToken, IconReplacementToken, CaseTransformDictionary, Context, ReplacementDictionary, ReplacementDictionaryGettter, Folder, FolderReplacementDictionary, FolderReplacementToken, PluginSettings } from "../types";
 import { getContextRegex, RECURSE } from "./format/syntax";
+
+// HACK: should find a way to reference the store
+let settings: PluginSettings
 
 interface Export {
     fileName: string,
@@ -23,17 +26,7 @@ const CASE_TRANSFORMS: CaseTransformDictionary = {
 function getFileInfo(data: ExportData, format: ExportFormat): Export {
     const canvas: HTMLCanvasElement = document.createElement("canvas");
     paper.setup(canvas);
-
-    //corrects winding order and some other things. Couldn't figure out how to do this in code.ts.
-    data.icons.forEach(icon => {
-        const p = new paper.CompoundPath(icon.data);
-        p.reorient(false, true);
-        if (data.pluginSettings.sizing === 'frame') {
-            p.translate(new paper.Point(icon.offsetX, icon.offsetY));
-        }
-        icon.data = p.pathData;
-    })
-
+    settings = data.pluginSettings
     const fileText = parseTemplate(format.template, data)
     const fileName = `${data.pluginSettings.fileName ?? "Icons"}.${format.extension}`;
     return { fileName, fileText };
@@ -100,18 +93,28 @@ function getColorStyleReplacements(color: ColorData, _index: number, isChild = f
 }
 
 function getIconReplacements(icon: IconData, index: number): IconReplacementDictionary {
+
     const NAME = icon.name.trim()
+    const WIDTH = settings.sizing === 'frame' ? icon.width : icon.iconWidth
+    const HEIGHT = settings.sizing === 'frame' ? icon.height : icon.iconHeight
+
+    const p = new paper.CompoundPath(icon.data);
+    p.reorient(false, true);
+    if (settings.sizing === 'frame') {
+        p.translate(new paper.Point(icon.offsetX, icon.offsetY))
+    }
+    const PATH_DATA = p.pathData
 
     const m: IconReplacementDictionary = new Map()
 
     //order is important, make sure any tokens whose names are supersets of others are included before the subset
     m.set(IconReplacementToken.NAME, NAME)
     // TODO: FULL_NAME
-    m.set(IconReplacementToken.WIDTH, icon.width.toString())
-    m.set(IconReplacementToken.HEIGHT, icon.height.toString())
-    m.set(IconReplacementToken.LEFT, icon.offsetX.toString())
-    m.set(IconReplacementToken.TOP, icon.offsetX.toString())
-    m.set(IconReplacementToken.PATH_DATA, icon.data)
+    m.set(IconReplacementToken.WIDTH, WIDTH.toFixed(3))
+    m.set(IconReplacementToken.HEIGHT, HEIGHT.toFixed(3))
+    m.set(IconReplacementToken.LEFT, "0")
+    m.set(IconReplacementToken.TOP, "0")
+    m.set(IconReplacementToken.PATH_DATA, PATH_DATA)
     m.set(IconReplacementToken.HUNDREDS_INDEX, index.toString().padStart(3, '0'))
     m.set(IconReplacementToken.INDEX, index.toString())
 

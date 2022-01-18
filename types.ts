@@ -15,8 +15,8 @@ export interface IconData {
     name: string;
     width: number;
     height: number;
-    offsetX?: number;
-    offsetY?: number;
+    offsetX: number;
+    offsetY: number;
     iconWidth: number;
     iconHeight: number;
     data: string;

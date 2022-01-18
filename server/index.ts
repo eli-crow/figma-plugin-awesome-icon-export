@@ -74,8 +74,7 @@ function isCompletelyTransparent(node: GeometryMixin): boolean {
       }
     }
   } else {
-    const fills = node.fills as Paint[]
-    if (fills.some(p => p.visible && p.opacity > 0)) {
+    if (node.fills === figma.mixed || node.fills.some(p => p.visible && p.opacity > 0)) {
       return false
     }
   }
@@ -133,7 +132,6 @@ function getIconFrames(): FrameNode[] {
 }
 
 function getIconData(): IconData[] {
-
   const results: IconData[] = [];
 
   getIconFrames().forEach(frame => {
